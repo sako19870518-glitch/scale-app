@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>スケール変換</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+body{margin:0;padding:24px;font-family:-apple-system,system-ui,Roboto,"Noto Sans JP",sans-serif;background:#f7f7f8;}
+.container{max-width:500px;margin:0 auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);} 
+h1{font-size:1.3rem;margin-bottom:16px;text-align:center;}
+label{display:block;margin-top:14px;font-size:.95rem;color:#333;} 
+input{width:100%;padding:10px;font-size:1rem;border:1px solid #ccc;border-radius:8px;margin-top:4px;} 
+#result{margin-top:20px;font-size:1.3rem;font-weight:bold;text-align:center;} 
+button{margin-top:20px;width:100%;padding:12px;font-size:1.05rem;border:none;border-radius:10px;background:#111;color:#fff;cursor:pointer;} 
+</style>
+</head>
+<body>
+<div class="container">
+<h1>スケール変換</h1>
+<label>1点目（変換前）<input id="b1" type="number" value="4"></label>
+<label>1点目（変換後）<input id="c1" type="number" value="0"></label>
+<label>2点目（変換前）<input id="b2" type="number" value="20"></label>
+<label>2点目（変換後）<input id="c2" type="number" value="100"></label>
+<label>測定値<input id="x" type="number" value=""></label>
+<button onclick="calc()">変換する</button>
+<div id="result">結果: ―</div>
+</div>
+<script>
+function calc(){
+  const b1 = parseFloat(document.getElementById('b1').value);
+  const c1 = parseFloat(document.getElementById('c1').value);
+  const b2 = parseFloat(document.getElementById('b2').value);
+  const c2 = parseFloat(document.getElementById('c2').value);
+  const x  = parseFloat(document.getElementById('x').value);
+  if(isNaN(x)){ document.getElementById('result').textContent='結果: ―'; return; }
+  const slope = (c2 - c1) / (b2 - b1);
+  const y = slope * (x - b1) + c1;
+  document.getElementById('result').textContent = '結果: ' + y.toFixed(3);
+}
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js'); }
+</script>
+</body>
+</html>
