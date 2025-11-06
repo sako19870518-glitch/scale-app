@@ -4,43 +4,229 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール変換</title>
+
+<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+
 <style>
-body{margin:0;padding:24px;font-family:-apple-system,system-ui,Roboto,"Noto Sans JP",sans-serif;background:#f7f7f8;}
-.container{max-width:500px;margin:0 auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);} 
-h1{font-size:1.3rem;margin-bottom:16px;text-align:center;}
-label{display:block;margin-top:14px;font-size:.95rem;color:#333;} 
-input{width:100%;padding:10px;font-size:1rem;border:1px solid #ccc;border-radius:8px;margin-top:4px;} 
-#result{margin-top:20px;font-size:1.3rem;font-weight:bold;text-align:center;} 
-button{margin-top:20px;width:100%;padding:12px;font-size:1.05rem;border:none;border-radius:10px;background:#111;color:#fff;cursor:pointer;} 
+  :root{
+    --bg:#f6f7f9; --card:#fff; --line:#e6e8eb; --ink:#111;
+    --muted:#6b7280; --accent:#111; --accent-ink:#fff;
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+    --radius:18px;
+  }
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    color:var(--ink);
+  }
+  .wrap{max-width:680px; margin:0 auto; padding:20px 16px 32px;}
+  .title{font-size:20px; font-weight:700; margin:8px 4px 16px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:16px;
+  }
+
+  /* 行レイアウト（ラベル + 入力2つ + →） */
+  .row{display:grid; grid-template-columns: 90px 1fr 28px 1fr; gap:12px; align-items:center; margin:10px 0;}
+  .row.single{grid-template-columns: 90px 1fr 28px 1fr;}
+  .label{color:var(--muted); font-size:14px; text-align:right; padding-right:6px; white-space:nowrap;}
+  .arrow{opacity:.6; text-align:center;}
+  .box{
+    display:flex; align-items:center; border:1.5px solid var(--line); border-radius:12px; background:#fff;
+    padding:10px 12px; height:44px;
+  }
+  .box input{
+    border:none; outline:none; width:100%; font-size:18px; background:transparent;
+  }
+
+  /* ボタン */
+  .actions{display:flex; gap:10px; margin:14px 0 8px;}
+  .btn{
+    flex:1; height:48px; border-radius:12px; border:1px solid var(--line);
+    background:#fff; font-size:16px; font-weight:600; cursor:pointer;
+  }
+  .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+  .note{color:var(--muted); font-size:13px; margin-top:6px;}
+
+  /* テンキー */
+  .padWrap{
+    margin-top:16px;
+    background:#fff; border:1.5px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:12px;
+  }
+  .padTitle{font-size:14px; color:var(--muted); margin:0 0 8px 2px;}
+  .pad{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;
+  }
+  .key{
+    height:54px; border-radius:12px; border:1px solid var(--line); background:#f9fafb;
+    font-size:20px; font-weight:700; cursor:pointer;
+  }
+  .key.ok{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .key.wide{grid-column: span 2;}
+  .focusMark{outline:2px solid #8ab4ff; outline-offset:2px; border-radius:10px;}
 </style>
 </head>
 <body>
-<div class="container">
-<h1>スケール変換</h1>
-<label>1点目（変換前）<input id="b1" type="number" value="4"></label>
-<label>1点目（変換後）<input id="c1" type="number" value="0"></label>
-<label>2点目（変換前）<input id="b2" type="number" value="20"></label>
-<label>2点目（変換後）<input id="c2" type="number" value="100"></label>
-<label>測定値<input id="x" type="number" value=""></label>
-<button onclick="calc()">変換する</button>
-<div id="result">結果: ―</div>
-</div>
-<script>
-function calc(){
-  const b1 = parseFloat(document.getElementById('b1').value);
-  const c1 = parseFloat(document.getElementById('c1').value);
-  const b2 = parseFloat(document.getElementById('b2').value);
-  const c2 = parseFloat(document.getElementById('c2').value);
-  const x  = parseFloat(document.getElementById('x').value);
-  if(isNaN(x)){ document.getElementById('result').textContent='結果: ―'; return; }
-  const slope = (c2 - c1) / (b2 - b1);
-  const y = slope * (x - b1) + c1;
-  document.getElementById('result').textContent = '結果: ' + y.toFixed(3);
-}
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js'); }
-</script>
+  <div class="wrap">
+    <div class="title">スケール変換</div>
+
+    <div class="card">
+      <!-- 1点目 -->
+      <div class="row">
+        <div class="label">1点目</div>
+        <div class="box"><input id="x1" inputmode="decimal" autocomplete="off" placeholder="変換前" /></div>
+        <div class="arrow">→</div>
+        <div class="box"><input id="y1" inputmode="decimal" autocomplete="off" placeholder="変換後" /></div>
+      </div>
+
+      <!-- 2点目 -->
+      <div class="row">
+        <div class="label">2点目</div>
+        <div class="box"><input id="x2" inputmode="decimal" autocomplete="off" placeholder="変換前" /></div>
+        <div class="arrow">→</div>
+        <div class="box"><input id="y2" inputmode="decimal" autocomplete="off" placeholder="変換後" /></div>
+      </div>
+
+      <!-- 測定値 → 結果 -->
+      <div class="row">
+        <div class="label">測定値</div>
+        <div class="box"><input id="xm" inputmode="decimal" autocomplete="off" placeholder="数値を入力" /></div>
+        <div class="arrow">→</div>
+        <div class="box"><input id="result" readonly placeholder="結果" /></div>
+      </div>
+
+      <div class="actions">
+        <button id="doCalc" class="btn primary">変換する</button>
+        <button id="clearAll" class="btn">クリア</button>
+      </div>
+      <div class="note">式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b</div>
+
+      <!-- テンキー -->
+      <div class="padWrap">
+        <div class="padTitle">テンキー（選択中の入力欄に反映）</div>
+        <div class="pad">
+          <button class="key">7</button>
+          <button class="key">8</button>
+          <button class="key">9</button>
+          <button class="key" data-act="back">⌫</button>
+
+          <button class="key">4</button>
+          <button class="key">5</button>
+          <button class="key">6</button>
+          <button class="key" data-act="sign">±</button>
+
+          <button class="key">1</button>
+          <button class="key">2</button>
+          <button class="key">3</button>
+          <button class="key" data-act="clear">C</button>
+
+          <button class="key wide">0</button>
+          <button class="key">.</button>
+          <button class="key ok" data-act="ok">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 計算ロジック & テンキー制御 -->
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const inputs = ["#x1","#y1","#x2","#y2","#xm","#result"].map($);
+    const [x1,y1,x2,y2,xm,res] = inputs;
+
+    // フォーカス管理（テンキーの挿入先）
+    let target = null;
+    function setTarget(el){
+      if(target) target.classList.remove("focusMark");
+      target = el;
+      if(target && !target.readOnly) target.classList.add("focusMark");
+    }
+    inputs.forEach(el=>{
+      el.addEventListener("focus",()=>setTarget(el));
+      el.addEventListener("blur",()=>el.classList.remove("focusMark"));
+    });
+
+    // 計算
+    function toNum(v){ return v===""||v==null ? NaN : Number(v); }
+    function calc(){
+      const X1=toNum(x1.value), Y1=toNum(y1.value);
+      const X2=toNum(x2.value), Y2=toNum(y2.value);
+      const XM=toNum(xm.value);
+
+      if([X1,Y1,X2,Y2,XM].some(n=>Number.isNaN(n))){
+        res.value = "";
+        return;
+      }
+      if(X1===X2){
+        res.value = "エラー: 分母0";
+        return;
+      }
+      const a = (Y2 - Y1) / (X2 - X1);
+      const b = Y1 - a * X1;
+      const R = a * XM + b;
+      // 表示の丸め（小数4桁まで）
+      res.value = (Math.round(R*10000)/10000).toString();
+    }
+
+    $("#doCalc").addEventListener("click", calc);
+    [x1,y1,x2,y2,xm].forEach(el=>el.addEventListener("input", ()=>{ /*ライブ更新したい場合↓*/
+      // calc(); // ←常時リアルタイムならコメント解除
+    }));
+
+    $("#clearAll").addEventListener("click", ()=>{
+      [x1,y1,x2,y2,xm,res].forEach(el=>{ el.value=""; el.classList.remove("focusMark"); });
+      target=null;
+      x1.focus();
+    });
+
+    // テンキー
+    const pad = document.querySelector(".pad");
+    pad.addEventListener("click",(e)=>{
+      const btn = e.target.closest(".key");
+      if(!btn) return;
+      // 入力先がなければ測定値をデフォルトに
+      if(!target || target.readOnly) setTarget(xm);
+
+      const act = btn.dataset.act;
+      if(!act){
+        // 数字 or .
+        const ch = btn.textContent.trim();
+        target.value += ch;
+        return;
+      }
+      if(act==="back"){
+        target.value = target.value.slice(0,-1);
+        return;
+      }
+      if(act==="sign"){
+        if(!target.value) { target.value="-"; return; }
+        target.value = target.value.startsWith("-") ? target.value.slice(1) : "-"+target.value;
+        return;
+      }
+      if(act==="clear"){
+        target.value = "";
+        return;
+      }
+      if(act==="ok"){
+        // OK で計算実行（測定値欄を触っていたら特に便利）
+        calc();
+        res.focus();
+        return;
+      }
+    });
+
+    // 既定のフォーカス
+    x1.focus();
+
+    // PWA（既に登録済でも二重登録にはならない）
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./service-worker.js');
+    }
+  </script>
 </body>
 </html>
