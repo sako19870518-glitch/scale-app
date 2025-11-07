@@ -6,49 +6,59 @@
 <title>スケール変換</title>
 
 <style>
-  body { font-family: sans-serif; background:#fafafa; margin:0; padding:20px; text-align:center; }
+  body { 
+    font-family: sans-serif; background:#fafafa; 
+    margin:0; padding:20px; text-align:center; 
+  }
 
-  .row { margin:14px 0; display:flex; justify-content:center; align-items:center; gap:14px; }
+  .row {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin:10px 0;
+  }
 
-  .label-col { width:70px; text-align:right; font-size:16px; }
-  .title-row { font-weight:bold; margin-top:10px; margin-bottom:4px; }
+  .label { width:60px; text-align:right; font-size:16px; }
 
   input.box {
     width:90px;
     height:38px;
     font-size:18px;
     text-align:right;
-    border:1px solid #888;
+    border:1px solid #777;
     border-radius:6px;
   }
 
   #formula {
     width:260px;
+    margin:14px auto;
     padding:10px;
-    margin:16px auto;
     border:1px solid #aaa;
+    background:white;
     border-radius:6px;
-    background:#fff;
   }
 
-  /* テンキー */
   .keypad {
     width:260px;
-    margin:0 auto;
+    margin:20px auto 0 auto;
     display:grid;
     grid-template-columns: repeat(3, 1fr);
     gap:8px;
-    margin-top:18px;
   }
+
   .key {
-    background:#fff;
-    border:1px solid #888;
-    border-radius:8px;
+    background:white;
+    border:1px solid #666;
+    border-radius:6px;
     font-size:20px;
-    padding:14px 0;
+    padding:12px 0;
     cursor:pointer;
+    user-select:none;
   }
-  #clearBtn { margin-top:18px; padding:10px 20px; font-size:16px; }
+
+  #clearBtn { margin-top:16px; padding:8px 16px; font-size:16px; }
+
 </style>
 </head>
 
@@ -56,51 +66,39 @@
 
 <h2>スケール変換</h2>
 
-<!-- 変換前 / 変換後 タイトル -->
-<div class="row title-row">
-  <div class="label-col"></div>
-  <div>変換前</div>
-  <div></div>
-  <div>変換後</div>
+<div class="row" style="font-weight:bold;">
+  <div class="label"></div><div>変換前</div><div></div><div>変換後</div>
 </div>
 
-<!-- 1点目 -->
 <div class="row">
-  <div class="label-col">1点目</div>
+  <div class="label">1点目</div>
   <input class="box" id="x1">
   <span>→</span>
   <input class="box" id="y1">
 </div>
 
-<!-- 2点目 -->
 <div class="row">
-  <div class="label-col">2点目</div>
+  <div class="label">2点目</div>
   <input class="box" id="x2">
   <span>→</span>
   <input class="box" id="y2">
 </div>
 
-<!-- 測定値 / 結果 -->
-<div class="row title-row">
-  <div class="label-col"></div>
-  <div>測定値</div>
-  <div></div>
-  <div>結果</div>
+<div class="row" style="font-weight:bold; margin-top:12px;">
+  <div class="label"></div><div>測定値</div><div></div><div>結果</div>
 </div>
 
 <div class="row">
-  <div class="label-col"></div>
+  <div class="label"></div>
   <input class="box" id="xm">
   <span>→</span>
   <input class="box" id="res" readonly>
 </div>
 
-<!-- 計算式 -->
 <div id="formula">y = ax + b</div>
 
 <button id="clearBtn">クリア</button>
 
-<!-- テンキー -->
 <div class="keypad">
   <div class="key">7</div><div class="key">8</div><div class="key">9</div>
   <div class="key">4</div><div class="key">5</div><div class="key">6</div>
@@ -109,40 +107,42 @@
 </div>
 
 <script>
-  let active = null;
-  document.querySelectorAll("input.box").forEach(i=>{
-    i.addEventListener("focus", ()=>{ active = i; i.select(); });
-    i.addEventListener("input", compute);
-  });
+let active = null;
 
-  document.querySelectorAll(".key").forEach(k=>{
-    k.addEventListener("click", ()=>{
-      if(!active) return;
-      if(k.textContent==="←"){ active.value = active.value.slice(0,-1); }
-      else { active.value += k.textContent; }
-      compute();
-    });
-  });
+document.querySelectorAll("input.box").forEach(i=>{
+  i.addEventListener("focus", ()=>{ active = i; i.select(); });
+  i.addEventListener("input", compute);
+});
 
-  function compute(){
-    let x1=parseFloat(x1.value), x2=parseFloat(x2.value);
-    let y1v=parseFloat(y1.value), y2v=parseFloat(y2.value);
-    let xmVal=parseFloat(xm.value);
-    if(isFinite(x1)&&isFinite(x2)&&isFinite(y1v)&&isFinite(y2v)){
-      let a=(y2v-y1v)/(x2-x1);
-      let b=y1v - a*x1;
-      formula.textContent=`y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
-      if(isFinite(xmVal)){
-        res.value=(a*xmVal+b).toFixed(2);
-      }
+document.querySelectorAll(".key").forEach(k=>{
+  k.addEventListener("click", ()=>{
+    if(!active) return;
+    if(k.textContent==="←"){ active.value = active.value.slice(0,-1); }
+    else { active.value += k.textContent; }
+    compute();
+  });
+});
+
+function compute(){
+  let x1v=parseFloat(x1.value), x2v=parseFloat(x2.value);
+  let y1v=parseFloat(y1.value), y2v=parseFloat(y2.value);
+  let xmVal=parseFloat(xm.value);
+
+  if(isFinite(x1v)&&isFinite(x2v)&&isFinite(y1v)&&isFinite(y2v)){
+    let a=(y2v-y1v)/(x2v-x1v);
+    let b=y1v - a*x1v;
+    formula.textContent=`y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
+    if(isFinite(xmVal)){
+      res.value=(a*xmVal+b).toFixed(2);
     }
   }
+}
 
-  clearBtn.onclick = ()=>{
-    document.querySelectorAll("input.box").forEach(i=>i.value="");
-    formula.textContent="y = ax + b";
-    res.value="";
-  };
+clearBtn.onclick = ()=>{
+  document.querySelectorAll("input.box").forEach(i=>i.value="");
+  res.value="";
+  formula.textContent="y = ax + b";
+};
 </script>
 
 </body>
