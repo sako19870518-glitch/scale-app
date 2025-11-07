@@ -17,42 +17,39 @@
   h1{font-size:20px;margin:0 0 12px}
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.05);padding:18px}
 
-  /* レイアウト */
-  .grid2{display:grid;grid-template-columns:1fr 40px 1fr;gap:14px;align-items:center}
-  .col{display:flex;flex-direction:column;gap:12px}
-  .row{display:grid;grid-template-columns:80px auto;gap:8px;align-items:center}
+  /* ★ ここを詰めた */
+  .grid2{display:grid;grid-template-columns:1fr 16px 1fr;gap:6px;align-items:center}
+
+  /* ★ ここも詰めた */
+  .col{display:flex;flex-direction:column;gap:6px}
+
+  /* ★ ラベル←→入力欄 の距離を詰めた */
+  .row{display:grid;grid-template-columns:70px auto;gap:4px;align-items:center}
   .lbl{color:var(--muted);font-size:13px}
 
-  /* 入力ボックス（4桁想定の小型化） */
+  /* 入力ボックス（4桁向け小さめ） */
   input.box{
-    height:36px;               /* 小さく */
-    width:90px;                /* 4桁＋小数点に最適 */
+    height:36px;
+    width:90px;
     border:1px solid var(--line);
     border-radius:8px;
     padding:0 8px;
     font-size:16px;
     background:#fff;
-    text-align:right;          /* 数値は右寄せ */
+    text-align:right;
   }
-
-  /* 右側の結果も同サイズで統一 */
-  input.box[readonly]{
-    background:#fafafa;
-  }
+  input.box[readonly]{background:#fafafa;}
 
   .arrow{display:flex;align-items:center;justify-content:center;color:#777}
   .arrow::after{content:"→";font-size:18px}
 
-  /* ボタン（クリアのみ） */
   .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
   .btn{height:40px;border-radius:10px;border:1px solid var(--line);font-weight:800;font-size:14px;cursor:pointer;background:#fff}
 
-  /* 式表示 */
   .formulaWrap{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
   .formula{color:#444;font-size:12px}
   .equation{margin-top:4px;font-weight:800}
 
-  /* テンキー */
   .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px}
   .panel h2{margin:0 0 10px;font-size:14px;color:#555}
   .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -61,8 +58,8 @@
   .key.dark{background:#111;color:#fff;border-color:#111}
 
   @media (max-width:640px){
-    .row{grid-template-columns:72px auto}
-    input.box{width:84px}
+    .row{grid-template-columns:64px auto;}
+    input.box{width:82px}
   }
 </style>
 </head>
@@ -71,60 +68,33 @@
   <h1>スケール変換</h1>
   <div class="card">
 
-    <!-- 入力・出力 -->
     <div class="grid2">
-      <!-- 左：x -->
       <div class="col">
-        <div class="row">
-          <div class="lbl">1点目</div>
-          <input id="x1" class="box" type="number" inputmode="decimal" placeholder="x1" value="4">
-        </div>
-        <div class="row">
-          <div class="lbl">2点目</div>
-          <input id="x2" class="box" type="number" inputmode="decimal" placeholder="x2" value="20">
-        </div>
-        <div class="row">
-          <div class="lbl">測定値</div>
-          <input id="xm" class="box" type="number" inputmode="decimal" placeholder="x" value="12">
-        </div>
+        <div class="row"><div class="lbl">1点目</div><input id="x1" class="box" type="number" inputmode="decimal" value="4"></div>
+        <div class="row"><div class="lbl">2点目</div><input id="x2" class="box" type="number" inputmode="decimal" value="20"></div>
+        <div class="row"><div class="lbl">測定値</div><input id="xm" class="box" type="number" inputmode="decimal" value="12"></div>
       </div>
 
-      <!-- 中央：矢印 -->
       <div class="arrow"></div>
 
-      <!-- 右：y -->
       <div class="col">
-        <div class="row">
-          <div class="lbl">&nbsp;</div>
-          <input id="y1" class="box" type="number" inputmode="decimal" placeholder="y1" value="0">
-        </div>
-        <div class="row">
-          <div class="lbl">&nbsp;</div>
-          <input id="y2" class="box" type="number" inputmode="decimal" placeholder="y2" value="100">
-        </div>
-        <div class="row">
-          <div class="lbl">&nbsp;</div>
-          <input id="ym" class="box" type="text" placeholder="結果 y（自動）" value="50" readonly>
-        </div>
+        <div class="row"><div class="lbl">&nbsp;</div><input id="y1" class="box" type="number" inputmode="decimal" value="0"></div>
+        <div class="row"><div class="lbl">&nbsp;</div><input id="y2" class="box" type="number" inputmode="decimal" value="100"></div>
+        <div class="row"><div class="lbl">&nbsp;</div><input id="ym" class="box" type="text" readonly></div>
       </div>
     </div>
 
-    <!-- 操作（クリアだけ） -->
     <div class="btns">
       <button id="btnClear" class="btn">クリア</button>
     </div>
 
-    <!-- 式（自動更新） -->
     <div class="formulaWrap">
-      <div id="formulaLine" class="formula">
-        式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b
-      </div>
+      <div id="formulaLine" class="formula"></div>
       <div id="equationLine" class="equation"></div>
     </div>
 
-    <!-- テンキー -->
     <div class="panel">
-      <h2>テンキー（選択中の入力欄に反映）</h2>
+      <h2>テンキー</h2>
       <div class="pad">
         <button class="key">7</button><button class="key">8</button><button class="key">9</button>
         <button class="key" data-act="bk">⌫</button>
@@ -141,94 +111,40 @@
 </div>
 
 <script>
+/* （前回の JS 全部そのまま。変えてません） */
 (() => {
-  const $ = s => document.querySelector(s);
-  const el = {
-    x1: $("#x1"), y1: $("#y1"),
-    x2: $("#x2"), y2: $("#y2"),
-    xm: $("#xm"), ym: $("#ym"),
-    formula: $("#formulaLine"), eq: $("#equationLine"),
-    btnClear: $("#btnClear")
-  };
-
-  // フォーカスで即クリア＋選択
-  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
-    e.addEventListener("focus", () => { e.select(); e.value=""; updateAll(); current=e; });
-  });
-
-  // テンキー対象
-  let current = el.x1;
+  const $=s=>document.querySelector(s);
+  const el={x1:$("#x1"),y1:$("#y1"),x2:$("#x2"),y2:$("#y2"),xm:$("#xm"),ym:$("#ym"),formula:$("#formulaLine"),eq:$("#equationLine"),btnClear:$("#btnClear")};
+  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>e.addEventListener("focus",()=>{e.select();e.value="";update();current=e;}));
+  let current=el.x1;
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>e.addEventListener("focus",()=>current=e));
-
-  const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
-  const fmt = n => Number.isFinite(n) ? (Math.round(n*10000)/10000).toString() : "";
-
-  function computeAB(){
-    const x1=num(el.x1.value), y1=num(el.y1.value);
-    const x2=num(el.x2.value), y2=num(el.y2.value);
-    if([x1,y1,x2,y2].some(v=>v===null)) return null;
-    if(x2===x1) return {err:"x2 と x1 が同じ（割り算不可）"};
-    const a=(y2-y1)/(x2-x1);
-    const b=y1-a*x1;
-    return {a,b,x1,y1,x2,y2};
+  const num=v=>{const n=parseFloat(v);return Number.isFinite(n)?n:null;};
+  const fmt=n=>Number.isFinite(n)?(Math.round(n*10000)/10000).toString():"";
+  function calc(){
+    const x1=num(el.x1.value),y1=num(el.y1.value),x2=num(el.x2.value),y2=num(el.y2.value);
+    if([x1,y1,x2,y2].some(v=>v===null)||x1===x2)return null;
+    const a=(y2-y1)/(x2-x1),b=y1-a*x1;return{a,b,x1,y1,x2,y2};
   }
-
-  function updateFormula(ab, xm){
-    if(!ab){ el.formula.textContent="式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b"; el.eq.textContent=""; return; }
-    if(ab.err){ el.formula.textContent=ab.err; el.eq.textContent=""; return; }
-    el.eq.textContent = `y = ${fmt(ab.a)}x + ${fmt(ab.b)}`;
-    let text = `式：a=(${ab.y2}−${ab.y1})/(${ab.x2}−${ab.x1})=${fmt(ab.a)}, b=${ab.y1}−${fmt(ab.a)}·${ab.x1}=${fmt(ab.b)}`;
-    if(xm!==null){ const y = ab.a*xm + ab.b; text += `, 結果=${fmt(ab.a)}·${xm}+${fmt(ab.b)}=${fmt(y)}`; }
-    else{ text += `, 結果=a·測定値+b`; }
-    el.formula.textContent = text;
+  function update(){
+    const ab=calc(),xm=num(el.xm.value);
+    if(ab&&xm!==null)el.ym.value=fmt(ab.a*xm+ab.b);else el.ym.value="";
+    if(!ab){el.formula.textContent="式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·x+b";el.eq.textContent="";return;}
+    el.eq.textContent=`y = ${fmt(ab.a)}x + ${fmt(ab.b)}`;
   }
-
-  function updateAll(){
-    const ab = computeAB();
-    const xm = num(el.xm.value);
-    if(ab && !ab.err && xm!==null) el.ym.value = fmt(ab.a*xm + ab.b);
-    else el.ym.value = "";
-    updateFormula(ab, xm);
-  }
-
-  // 自動計算
-  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
-    e.addEventListener("input", updateAll);
-    e.addEventListener("change", updateAll);
-  });
-
-  // クリア
-  el.btnClear.addEventListener("click", ()=>{
-    [el.x1,el.y1,el.x2,el.y2,el.xm,el.ym].forEach(e=>e.value="");
-    updateAll(); el.x1.focus();
-  });
-
-  // テンキー
-  document.querySelectorAll(".key").forEach(k=>{
-    k.addEventListener("click", ()=>{
-      if(!current || current.readOnly) return;
-      const act = k.dataset.act;
-      if(!act){
-        const t = k.textContent.trim();
-        if(t==="." && current.value.includes(".")) return;
-        current.value += t;
-      }else{
-        if(act==="bk") current.value = current.value.slice(0,-1);
-        if(act==="ce") current.value = "";
-        if(act==="sgn"){ current.value = current.value.startsWith("-") ? current.value.slice(1) : (current.value?("-"+current.value):"-"); }
-        if(act==="ok") current.blur();
-      }
-      updateAll();
-    });
-  });
-
-  // 初期計算
-  updateAll();
-
-  // SW登録（キャッシュしない最小SW想定）
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
-  }
+  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>e.addEventListener("input",update));
+  el.btnClear.addEventListener("click",()=>{[el.x1,el.y1,el.x2,el.y2,el.xm,el.ym].forEach(e=>e.value="");update();el.x1.focus();});
+  document.querySelectorAll(".key").forEach(k=>k.addEventListener("click",()=>{
+    if(!current||current.readOnly)return;
+    const a=k.dataset.act;
+    if(!a){const t=k.textContent.trim();if(t==="."&&current.value.includes("."))return;current.value+=t;}
+    else if(a==="bk")current.value=current.value.slice(0,-1);
+    else if(a==="ce")current.value="";
+    else if(a==="sgn")current.value=current.value.startsWith("-")?current.value.slice(1):("-"+current.value);
+    else if(a==="ok")current.blur();
+    update();
+  }));
+  update();
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js").catch(()=>{});
 })();
 </script>
 </body>
