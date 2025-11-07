@@ -4,32 +4,17 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール算出</title>
-
 <style>
-body{
-  font-family: system-ui, sans-serif;
-  margin: 0; padding: 20px;
-  background: #fafafa;
-}
-h1{margin:0 0 14px;font-size:20px;font-weight:700;}
-input{
-  width:100%; padding:10px; font-size:16px;
-  margin-bottom:10px; border:1px solid #ccc; border-radius:8px;
-}
-button{
-  width:100%; padding:12px; font-size:16px;
-  border:none; border-radius:8px;
-  background:#1976d2; color:#fff; font-weight:700;
-  margin-top:6px; cursor:pointer;
-}
-.result{
-  background:#fff; border:1px solid #ccc; border-radius:8px;
-  padding:14px; margin-top:16px; font-size:18px;
-}
-#equation{font-size:18px;font-weight:700;color:#d32f2f;margin-top:10px;}
+body{font-family:system-ui,sans-serif;margin:0;padding:20px;background:#fafafa}
+h1{margin:0 0 14px;font-size:20px;font-weight:700}
+label{display:block;margin:10px 0 6px;color:#555;font-size:12px}
+input{width:100%;padding:10px;font-size:16px;border:1px solid #ccc;border-radius:8px}
+button{width:100%;padding:12px;font-size:16px;border:none;border-radius:8px;background:#1976d2;color:#fff;font-weight:700;margin-top:10px;cursor:pointer}
+.result{background:#fff;border:1px solid #ccc;border-radius:8px;padding:14px;margin-top:16px;font-size:18px}
+#equation{font-size:18px;font-weight:700;color:#d32f2f;margin-top:6px}
+#version{color:#888;font-size:12px;margin-top:8px}
 </style>
 </head>
-
 <body>
 <h1>スケール計算</h1>
 
@@ -44,39 +29,55 @@ button{
 <label>測定値 (x)</label>
 <input id="x" type="number" placeholder="測定値を入力">
 
-<button onclick="calc()">計算</button>
+<button id="btn">計算</button>
 
 <div class="result">
   <div id="equation">y = ax + b</div>
-  <div id="ans"></div>
+  <div id="ans">結果: （未計算）</div>
+  <div id="version">v=live-2025-11-07</div>
 </div>
 
 <script>
-function calc(){
-  const x1 = parseFloat(document.getElementById("x1").value);
-  const y1 = parseFloat(document.getElementById("y1").value);
-  const x2 = parseFloat(document.getElementById("x2").value);
-  const y2 = parseFloat(document.getElementById("y2").value);
-  const x  = parseFloat(document.getElementById("x").value);
+const $ = id => document.getElementById(id);
 
-  if([x1,y1,x2,y2,x].some(v => isNaN(v))){
-    alert("数字を全部入力してください");
-    return;
-  }
+function parse(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : null; }
 
-  const a = (y2 - y1) / (x2 - x1);
-  const b = y1 - a * x1;
-  const y = a * x + b;
-
-  // ✅ y = ax + b の形式を表示
-  document.getElementById("equation").textContent =
-    `y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
-
-  // ✅ 計算結果
-  document.getElementById("ans").textContent =
-    `結果: y = ${y.toFixed(4)}`;
+function computeAB(){
+  const x1=parse($("#x1").value), y1=parse($("#y1").value);
+  const x2=parse($("#x2").value), y2=parse($("#y2").value);
+  if([x1,y1,x2,y2].some(v=>v===null)) return null;
+  if(x2===x1) return {err:"x2 と x1 が同じ（割り算不可）"};
+  const a=(y2-y1)/(x2-x1);
+  const b=y1-a*x1;
+  return {a,b};
 }
-</script>
 
+function showEquation(){
+  const ab=computeAB();
+  if(!ab){ $("equation").textContent = "y = ax + b"; return; }
+  if(ab.err){ $("equation").textContent = ab.err; return; }
+  $("equation").textContent = `y = ${ab.a.toFixed(4)}x + ${ab.b.toFixed(4)}`;
+}
+
+function calcY(){
+  const ab=computeAB();
+  const x=parse($("#x").value);
+  if(!ab || ab.err){ $("ans").textContent="結果: （未計算）"; return; }
+  if(x===null){ $("ans").textContent="結果: （x 未入力）"; return; }
+  const y=ab.a*x+ab.b;
+  $("ans").textContent = `結果: y = ${y.toFixed(4)}`;
+}
+
+// 入力のたびに数式を更新、xがあれば結果も更新
+["x1","y1","x2","y2","x"].forEach(id=>{
+  $(id).addEventListener("input", ()=>{ showEquation(); calcY(); });
+});
+
+// ボタンでも計算可能
+$("btn").addEventListener("click", ()=>{ showEquation(); calcY(); });
+
+// 初期表示
+showEquation();
+</script>
 </body>
 </html>
