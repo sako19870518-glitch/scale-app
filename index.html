@@ -22,12 +22,12 @@
   .arrow{display:flex;align-items:center;justify-content:center;color:#777}
   .arrow::after{content:"→";font-size:20px}
 
-  .btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
   .btn{height:48px;border-radius:12px;border:1px solid var(--line);font-weight:800;font-size:16px;cursor:pointer}
-  .btn.primary{background:var(--btn);color:#fff;border-color:var(--btn)}
   .btn.ghost{background:#fff}
 
-  .formula{margin-top:10px;color:#444;font-size:12px}
+  .formulaWrap{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
+  .formula{color:#444;font-size:12px}
   .equation{margin-top:4px;font-weight:800}
 
   .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -55,15 +55,15 @@
       <div class="col">
         <div class="row">
           <div class="lbl">1点目</div>
-          <input id="x1" class="box" type="number" inputmode="decimal" placeholder="x1">
+          <input id="x1" class="box" type="number" inputmode="decimal" placeholder="x1（タップでクリア）" value="4">
         </div>
         <div class="row">
           <div class="lbl">2点目</div>
-          <input id="x2" class="box" type="number" inputmode="decimal" placeholder="x2">
+          <input id="x2" class="box" type="number" inputmode="decimal" placeholder="x2（タップでクリア）" value="20">
         </div>
         <div class="row">
           <div class="lbl">測定値</div>
-          <input id="xm" class="box" type="number" inputmode="decimal" placeholder="x">
+          <input id="xm" class="box" type="number" inputmode="decimal" placeholder="x（タップでクリア）" value="12">
         </div>
       </div>
 
@@ -74,30 +74,31 @@
       <div class="col">
         <div class="row">
           <div class="lbl">&nbsp;</div>
-          <input id="y1" class="box" type="number" inputmode="decimal" placeholder="y1">
+          <input id="y1" class="box" type="number" inputmode="decimal" placeholder="y1（タップでクリア）" value="0">
         </div>
         <div class="row">
           <div class="lbl">&nbsp;</div>
-          <input id="y2" class="box" type="number" inputmode="decimal" placeholder="y2">
+          <input id="y2" class="box" type="number" inputmode="decimal" placeholder="y2（タップでクリア）" value="100">
         </div>
         <div class="row">
           <div class="lbl">&nbsp;</div>
-          <input id="ym" class="box" type="text" placeholder="結果 y" readonly>
+          <input id="ym" class="box" type="text" placeholder="結果 y（自動）" value="50" readonly>
         </div>
       </div>
     </div>
 
-    <!-- 操作 -->
+    <!-- 操作：クリアだけ残す -->
     <div class="btns">
-      <button id="btnCalc" class="btn primary">変換する</button>
       <button id="btnClear" class="btn ghost">クリア</button>
     </div>
 
     <!-- 式（自動更新） -->
-    <div id="formulaLine" class="formula">
-      式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b
+    <div class="formulaWrap">
+      <div id="formulaLine" class="formula">
+        式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b
+      </div>
+      <div id="equationLine" class="equation"></div>
     </div>
-    <div id="equationLine" class="equation"></div>
 
     <!-- テンキー -->
     <div class="panel">
@@ -135,10 +136,22 @@
     x2: $("#x2"), y2: $("#y2"),
     xm: $("#xm"), ym: $("#ym"),
     formula: $("#formulaLine"), eq: $("#equationLine"),
-    btnCalc: $("#btnCalc"), btnClear: $("#btnClear")
+    btnClear: $("#btnClear")
   };
 
-  // フォーカス中（テンキーの入力先）
+  // ===== 入力枠：フォーカスで自動クリア =====
+  //   - どの枠も、選択（focus）した瞬間に value を消す
+  //   - 直後のテンキー/キーボード入力がそのまま入る
+  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
+    e.addEventListener("focus", () => {
+      e.select();          // 一応ハイライト
+      e.value = "";        // そして即クリア
+      updateAll();         // 再計算
+      current = e;         // テンキー入力先
+    });
+  });
+
+  // ===== テンキーの入力先（最後に触った要素） =====
   let current = el.x1;
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
     e.addEventListener("focus", ()=> current=e);
@@ -160,10 +173,7 @@
     return {a,b,x1,y1,x2,y2};
   }
 
-  function updateFormula(){
-    const ab = computeAB();
-    const xm = num(el.xm.value);
-
+  function updateFormulaOnly(ab, xm){
     if(!ab){
       el.formula.textContent = "式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b";
       el.eq.textContent = "";
@@ -186,30 +196,31 @@
     el.formula.textContent = text;
   }
 
-  function calcOnce(){
+  function updateAll(){
     const ab = computeAB();
-    if(!ab || ab.err){ el.ym.value=""; updateFormula(); return; }
     const xm = num(el.xm.value);
-    if(xm===null){ el.ym.value=""; updateFormula(); return; }
-    el.ym.value = fmt(ab.a*xm + ab.b);
-    updateFormula();
+    // 結果の自動計算
+    if(ab && !ab.err && xm!==null){
+      el.ym.value = fmt(ab.a*xm + ab.b);
+    }else{
+      el.ym.value = "";
+    }
+    // 式の表示
+    updateFormulaOnly(ab, xm);
   }
 
-  function clearAll(){
-    [el.x1,el.y1,el.x2,el.y2,el.xm,el.ym].forEach(e=>e.value="");
-    updateFormula();
-    el.x1.focus();
-  }
-
-  // 入力のたび即更新
+  // 入力のたびに自動再計算
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
-    e.addEventListener("input", updateFormula);
-    e.addEventListener("change", updateFormula);
+    e.addEventListener("input", updateAll);
+    e.addEventListener("change", updateAll);
   });
 
-  // ボタン
-  el.btnCalc.addEventListener("click", calcOnce);
-  el.btnClear.addEventListener("click", clearAll);
+  // クリア
+  el.btnClear.addEventListener("click", ()=>{
+    [el.x1,el.y1,el.x2,el.y2,el.xm,el.ym].forEach(e=>e.value="");
+    updateAll();
+    el.x1.focus();
+  });
 
   // テンキー
   document.querySelectorAll(".key").forEach(k=>{
@@ -229,14 +240,12 @@
         }
         if(act==="ok") current.blur();
       }
-      // 入力ごとに更新
-      updateFormula();
-      if(current===el.xm) calcOnce();
+      updateAll();
     });
   });
 
-  // 初期
-  updateFormula();
+  // 初期表示（デフォルト値で一度計算）
+  updateAll();
 })();
 </script>
 </body>
