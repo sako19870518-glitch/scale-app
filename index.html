@@ -17,31 +17,53 @@
   h1{font-size:20px;margin:0 0 12px}
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.05);padding:18px}
 
-  .grid2{display:grid;grid-template-columns:1fr 54px 1fr;gap:14px;align-items:center}
-  .col{display:flex;flex-direction:column;gap:16px}
-  .row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}
+  /* レイアウト */
+  .grid2{display:grid;grid-template-columns:1fr 40px 1fr;gap:14px;align-items:center}
+  .col{display:flex;flex-direction:column;gap:12px}
+  .row{display:grid;grid-template-columns:80px auto;gap:8px;align-items:center}
   .lbl{color:var(--muted);font-size:13px}
-  input.box{height:48px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font-size:18px;background:#fff}
+
+  /* 入力ボックス（4桁想定の小型化） */
+  input.box{
+    height:36px;               /* 小さく */
+    width:90px;                /* 4桁＋小数点に最適 */
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:0 8px;
+    font-size:16px;
+    background:#fff;
+    text-align:right;          /* 数値は右寄せ */
+  }
+
+  /* 右側の結果も同サイズで統一 */
+  input.box[readonly]{
+    background:#fafafa;
+  }
 
   .arrow{display:flex;align-items:center;justify-content:center;color:#777}
-  .arrow::after{content:"→";font-size:20px}
+  .arrow::after{content:"→";font-size:18px}
 
-  .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
-  .btn{height:48px;border-radius:12px;border:1px solid var(--line);font-weight:800;font-size:16px;cursor:pointer;background:#fff}
+  /* ボタン（クリアのみ） */
+  .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
+  .btn{height:40px;border-radius:10px;border:1px solid var(--line);font-weight:800;font-size:14px;cursor:pointer;background:#fff}
 
+  /* 式表示 */
   .formulaWrap{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
   .formula{color:#444;font-size:12px}
   .equation{margin-top:4px;font-weight:800}
 
+  /* テンキー */
   .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px}
   .panel h2{margin:0 0 10px;font-size:14px;color:#555}
-
   .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .key{height:56px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:18px;font-weight:800;cursor:pointer}
+  .key{height:52px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:18px;font-weight:800;cursor:pointer}
   .key.wide{grid-column:span 2}
   .key.dark{background:#111;color:#fff;border-color:#111}
 
-  @media (max-width:640px){ .row{grid-template-columns:84px 1fr} }
+  @media (max-width:640px){
+    .row{grid-template-columns:72px auto}
+    input.box{width:84px}
+  }
 </style>
 </head>
 <body>
@@ -129,12 +151,12 @@
     btnClear: $("#btnClear")
   };
 
-  // フォーカスで中身を即クリア（Delete不要）
+  // フォーカスで即クリア＋選択
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
     e.addEventListener("focus", () => { e.select(); e.value=""; updateAll(); current=e; });
   });
 
-  // テンキーの対象
+  // テンキー対象
   let current = el.x1;
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>e.addEventListener("focus",()=>current=e));
 
@@ -169,7 +191,7 @@
     updateFormula(ab, xm);
   }
 
-  // 入力変化で常に自動計算
+  // 自動計算
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
     e.addEventListener("input", updateAll);
     e.addEventListener("change", updateAll);
@@ -203,7 +225,7 @@
   // 初期計算
   updateAll();
 
-  // SW（キャッシュしない最小SW）
+  // SW登録（キャッシュしない最小SW想定）
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(()=>{});
   }
