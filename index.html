@@ -7,21 +7,18 @@
 <style>
   :root{
     --labelw: 70px;
-    --inw:    90px;
+    --inw: 90px;
     --arroww: 24px;
-    --gap:     8px;
+    --gap: 8px;
     --linew: calc(var(--inw) * 2 + var(--arroww) + var(--gap) * 2);
   }
-
-  *{ box-sizing: border-box; }
-
+  *{ box-sizing:border-box; }
   body{
     margin:0; padding:20px; background:#fafafa; color:#111;
     font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
     display:flex; justify-content:center;
   }
   .wrap{ width: calc(var(--labelw) + var(--gap) + var(--linew)); }
-
   h2{ margin:0 0 12px; text-align:center; }
 
   .grid{
@@ -31,120 +28,131 @@
     align-items:center;
     margin:8px 0;
   }
-
   .hdr{ margin-top:10px; margin-bottom:4px; }
-  .hdr .lbl-lin { grid-column: 2 / 3; text-align:center; font-weight:800; }
-  .hdr .lbl-rin { grid-column: 4 / 5; text-align:center; font-weight:800; }
+  .hdr .lbl-left{ grid-column:1/2; }
+  .hdr .lbl-lin{ grid-column:2/3; text-align:center; font-weight:800; }
+  .hdr .lbl-rin{ grid-column:4/5; text-align:center; font-weight:800; }
 
-  .row .lab { grid-column: 1 / 2; text-align:right; padding-right:2px; }
-  .row .arr { grid-column: 3 / 4; text-align:center; font-weight:800; color:#666; }
+  .row .lab{ grid-column:1/2; text-align:right; padding-right:2px; }
+  .row .lbx{ grid-column:2/3; }
+  .row .arr{ grid-column:3/4; text-align:center; font-weight:800; color:#666; }
+  .row .rbx{ grid-column:4/5; }
+
   input.box{
-    width: var(--inw);
-    height:38px;
-    font-size:18px;
-    text-align:right;
-    border:1px solid #888;
-    border-radius:6px;
-    background:#fff;
+    width:var(--inw); height:38px; font-size:18px;
+    text-align:right; border:1px solid #888; border-radius:6px; background:#fff;
   }
 
   #formula, .keypad{
-    width: var(--linew);
-    margin-left: calc(var(--labelw) + var(--gap));
-    background:#fff;
-    border:1px solid #aaa;
-    border-radius:6px;
+    width:var(--linew);
+    margin-left:calc(var(--labelw) + var(--gap));
+    background:#fff; border:1px solid #aaa; border-radius:6px;
   }
-  #formula{
-    padding:10px;
-    text-align:center;
-    font-size:16px;
-  }
+  #formula{ padding:10px; text-align:center; font-size:16px; }
 
   .keypad{
-    border-color:#888;
-    padding:12px;
-    margin-top:14px;
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap:8px;
+    border-color:#888; padding:12px; margin-top:14px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
   }
   .key{
-    background:#fff;
-    border:1px solid #666;
-    border-radius:6px;
-    font-size:20px;
-    height:48px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    user-select:none;
+    background:#fff; border:1px solid #666; border-radius:6px;
+    font-size:20px; height:48px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; user-select:none;
   }
 </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h2>スケール変換</h2>
+<div class="wrap">
+  <h2>スケール変換</h2>
 
-    <div class="grid hdr">
-      <div></div>
-      <div class="lbl-lin">変換前</div>
-      <div></div>
-      <div class="lbl-rin">変換後</div>
-    </div>
-
-    <div class="grid row">
-      <div class="lab">1点目</div>
-      <input id="x1" class="box" inputmode="decimal" type="text" value="4">
-      <div class="arr">→</div>
-      <input id="y1" class="box" inputmode="decimal" type="text" value="0">
-    </div>
-
-    <div class="grid row">
-      <div class="lab">2点目</div>
-      <input id="x2" class="box" inputmode="decimal" type="text" value="20">
-      <div class="arr">→</div>
-      <input id="y2" class="box" inputmode="decimal" type="text">
-    </div>
-
-    <div id="formula">y = ax + b</div>
-
-    <div class="grid hdr">
-      <div></div>
-      <div class="lbl-lin">測定値</div>
-      <div></div>
-      <div class="lbl-rin">結果</div>
-    </div>
-
-    <div class="grid row">
-      <div class="lab"></div>
-      <input id="xm" class="box" inputmode="decimal" type="text">
-      <div class="arr">→</div>
-      <input id="res" class="box" type="text" readonly>
-    </div>
-
-    <div class="keypad">
-      <div class="key">7</div><div class="key">8</div><div class="key">9</div>
-      <div class="key">4</div><div class="key">5</div><div class="key">6</div>
-      <div class="key">1</div><div class="key">2</div><div class="key">3</div>
-      <div class="key">0</div><div class="key">.</div><div class="key">←</div>
-    </div>
+  <div class="grid hdr">
+    <div class="lbl-left"></div>
+    <div class="lbl-lin">変換前</div>
+    <div></div>
+    <div class="lbl-rin">変換後</div>
   </div>
+
+  <div class="grid row">
+    <div class="lab">1点目</div>
+    <input id="x1" class="box lbx" inputmode="decimal" type="text" value="4">
+    <div class="arr">→</div>
+    <input id="y1" class="box rbx" inputmode="decimal" type="text" value="0">
+  </div>
+
+  <div class="grid row">
+    <div class="lab">2点目</div>
+    <input id="x2" class="box lbx" inputmode="decimal" type="text" value="20">
+    <div class="arr">→</div>
+    <input id="y2" class="box rbx" inputmode="decimal" type="text">
+  </div>
+
+  <div id="formula">y = ax + b</div>
+
+  <div class="grid hdr">
+    <div class="lbl-left"></div>
+    <div class="lbl-lin">測定値</div>
+    <div></div>
+    <div class="lbl-rin">結果</div>
+  </div>
+
+  <div class="grid row">
+    <div class="lab"></div>
+    <input id="xm" class="box lbx" inputmode="decimal" type="text">
+    <div class="arr">→</div>
+    <input id="res" class="box rbx" type="text" readonly>
+  </div>
+
+  <div class="keypad">
+    <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+    <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+    <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+    <div class="key">0</div><div class="key">.</div><div class="key">←</div>
+  </div>
+</div>
 
 <script>
 (function(){
-  const $ = s => document.querySelector(s);
-  const el = { x1:$("#x1"), y1:$("#y1"), x2:$("#x2"), y2:$("#y2"), xm:$("#xm"), res:$("#res"), formula:$("#formula") };
+  const $=s=>document.querySelector(s);
+  const el={
+    x1:$("#x1"), y1:$("#y1"),
+    x2:$("#x2"), y2:$("#y2"),
+    xm:$("#xm"), res:$("#res"),
+    formula:$("#formula")
+  };
 
-  const trim = v => String(v)
+  const trim=v=>String(v)
     .replace(/\.0+$|(\.\d*?)0+$/,'$1')
     .replace(/\.$/,'');
 
-  let active = el.x1;
-  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(i=>{
-    i.addEventListener("focus",()=>{ active=i; });
-    i.addEventListener("input",compute);
+  const num=v=>{ const n=parseFloat(v); return Number.isFinite(n)?n:null; };
+
+  function compute(){
+    const x1=num(el.x1.value), x2=num(el.x2.value);
+    const y1=num(el.y1.value), y2=num(el.y2.value);
+    const xm=num(el.xm.value);
+
+    if([x1,x2,y1,y2].every(v=>v!==null) && x2!==x1){
+      const a=(y2-y1)/(x2-x1);
+      const b=y1-a*x1;
+      el.formula.textContent=`y = ${trim(a)}x + ${trim(b)}`;
+      el.res.value = (xm!==null)? trim(a*xm+b) : "";
+    } else {
+      el.formula.textContent="y = ax + b";
+      if(xm===null) el.res.value="";
+    }
+  }
+
+  // ✅ 自動クリア（復活）
+  let active=el.x1;
+  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(inp=>{
+    inp.addEventListener("focus",()=>{
+      inp.value="";
+      active=inp;
+      compute();
+    });
+    inp.addEventListener("input",compute);
   });
 
   document.querySelectorAll(".key").forEach(k=>{
@@ -160,22 +168,9 @@
     });
   });
 
-  const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
-
-  function compute(){
-    const x1=num(el.x1.value), x2=num(el.x2.value), y1=num(el.y1.value), y2=num(el.y2.value), xm=num(el.xm.value);
-    if([x1,x2,y1,y2].every(v=>v!==null) && x2!==x1){
-      const a=(y2-y1)/(x2-x1), b=y1-a*x1;
-      el.formula.textContent=`y = ${trim(a)}x + ${trim(b)}`;
-      el.res.value = (xm!==null) ? trim(a*xm+b) : "";
-    }else{
-      el.formula.textContent="y = ax + b";
-      if(xm===null) el.res.value="";
-    }
-  }
-
   compute();
 })();
 </script>
+
 </body>
 </html>
