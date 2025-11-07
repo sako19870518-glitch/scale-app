@@ -4,217 +4,174 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール変換</title>
+
 <style>
-  /* レイアウト定数 */
-  :root{
-    --labelw: 70px;   /* 左の「1点目/2点目」ラベル列の幅 */
-    --inw:    90px;   /* 入力ボックス幅（4桁＋小数点想定） */
-    --arroww: 24px;   /* → の列幅 */
-    --gap:     8px;   /* 列ギャップ */
-    /* 計算式/テンキーの行の幅（左枠+→+右枠＋その間のギャップ×2） */
-    --linew: calc(var(--inw) * 2 + var(--arroww) + var(--gap) * 2);
-  }
+body{
+  background:#fafafa;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
+  margin:0; padding:20px;
+  text-align:center;
+}
 
-  *{ box-sizing: border-box; }
+h1{ margin-bottom:20px; }
 
-  body{
-    margin:0; padding:20px; background:#fafafa; color:#111;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
-    display:flex; justify-content:center;
-  }
-  /* 全体の横幅＝ラベル列＋ギャップ＋(左枠→右枠エリア) */
-  .wrap{ width: calc(var(--labelw) + var(--gap) + var(--linew)); }
+.container{ max-width:360px; margin:0 auto; }
 
-  h2{ margin:0 0 12px; text-align:center; }
+label{
+  font-size:14px;
+  display:block;
+  margin-bottom:4px;
+}
 
-  /* 4列グリッド：ラベル列 | 左枠 | → | 右枠 */
-  .grid{
-    display:grid;
-    grid-template-columns: var(--labelw) var(--inw) var(--arroww) var(--inw);
-    column-gap: var(--gap);
-    align-items:center;
-    margin:8px 0;
-  }
+.input-row{
+  display:flex; justify-content:center; align-items:center;
+  gap:10px; margin-bottom:14px;
+}
 
-  /* 上の見出し（変換前/変換後、測定値/結果）— 対応枠の真上に中央揃え */
-  .hdr{ margin-top:10px; margin-bottom:4px; }
-  .hdr .lbl-left{ grid-column: 1 / 2; }
-  .hdr .lbl-lin { grid-column: 2 / 3; text-align:center; font-weight:800; }
-  .hdr .lbl-rin { grid-column: 4 / 5; text-align:center; font-weight:800; }
+input{
+  width:120px;
+  height:38px;
+  font-size:18px;
+  text-align:center;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
 
-  /* 入力行 */
-  .row .lab { grid-column: 1 / 2; text-align:right; padding-right:2px; }
-  .row .lbx { grid-column: 2 / 3; }
-  .row .arr { grid-column: 3 / 4; text-align:center; font-weight:800; color:#666; }
-  .row .rbx { grid-column: 4 / 5; }
+#formula{
+  width:100%;
+  margin:18px auto;
+  height:38px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:16px;
+  display:flex; justify-content:center; align-items:center;
+  background:white;
+}
 
-  input.box{
-    width: var(--inw);
-    height:38px;
-    font-size:18px;
-    text-align:right;
-    border:1px solid #888;
-    border-radius:6px;
-    background:#fff;
-  }
+#keypad{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:8px;
+}
 
-  /* 計算式とテンキーは「左ラベル列＋ギャップ」分だけ左に寄せて、幅は linew に固定 */
-  #formula, .keypad{
-    width: var(--linew);
-    margin-left: calc(var(--labelw) + var(--gap));
-    margin-right: 0;
-    background:#fff;
-    border:1px solid #aaa;
-    border-radius:6px;
-  }
-  #formula{
-    padding:10px;
-    text-align:center;
-    font-size:16px;
-  }
-
-  .keypad{
-    border-color:#888;
-    padding:12px;
-    margin-top:14px;
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap:8px;
-  }
-  .key{
-    background:#fff;
-    border:1px solid #666;
-    border-radius:6px;
-    font-size:20px;
-    height:48px;               /* 数字を縦中心に */
-    display:flex;
-    align-items:center;        /* 縦 */
-    justify-content:center;    /* 横 */
-    cursor:pointer;
-    user-select:none;
-  }
-
-  @media (max-width:480px){
-    body{ padding:14px; }
-  }
+.key{
+  height:48px;
+  background:white;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:20px;
+  display:flex; justify-content:center; align-items:center;
+  cursor:pointer;
+}
 </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h2>スケール変換</h2>
+<h1>スケール変換</h1>
 
-    <!-- 変換前 / 変換後（対応する枠の上に中央） -->
-    <div class="grid hdr">
-      <div class="lbl-left"></div>
-      <div class="lbl-lin">変換前</div>
-      <div></div>
-      <div class="lbl-rin">変換後</div>
-    </div>
+<div class="container">
 
-    <!-- 1点目 -->
-    <div class="grid row">
-      <div class="lab">1点目</div>
-      <input id="x1" class="box lbx" inputmode="decimal" type="text">
-      <div class="arr">→</div>
-      <input id="y1" class="box rbx" inputmode="decimal" type="text">
-    </div>
-
-    <!-- 2点目 -->
-    <div class="grid row">
-      <div class="lab">2点目</div>
-      <input id="x2" class="box lbx" inputmode="decimal" type="text">
-      <div class="arr">→</div>
-      <input id="y2" class="box rbx" inputmode="decimal" type="text">
-    </div>
-
-    <!-- 計算式 — 上の2枠エリアと左右ピッタリ一致 -->
-    <div id="formula">y = ax + b</div>
-
-    <!-- 測定値 / 結果（対応する枠の上に中央） -->
-    <div class="grid hdr">
-      <div class="lbl-left"></div>
-      <div class="lbl-lin">測定値</div>
-      <div></div>
-      <div class="lbl-rin">結果</div>
-    </div>
-
-    <!-- 測定値 → 結果 -->
-    <div class="grid row">
-      <div class="lab"></div>
-      <input id="xm" class="box lbx" inputmode="decimal" type="text">
-      <div class="arr">→</div>
-      <input id="res" class="box rbx" type="text" readonly>
-    </div>
-
-    <!-- テンキー — 計算式と同幅に揃える -->
-    <div class="keypad">
-      <div class="key">7</div><div class="key">8</div><div class="key">9</div>
-      <div class="key">4</div><div class="key">5</div><div class="key">6</div>
-      <div class="key">1</div><div class="key">2</div><div class="key">3</div>
-      <div class="key">0</div><div class="key">.</div><div class="key">←</div>
-    </div>
+  <!-- 1点目 -->
+  <label>変換前</label>
+  <label style="position:relative; left:-110px; font-size:13px;">1点目</label>
+  <div class="input-row">
+    <input id="x1">
+    <span>→</span>
+    <input id="y1">
   </div>
 
+  <!-- 2点目 -->
+  <label style="position:relative; left:-110px; font-size:13px;">2点目</label>
+  <div class="input-row">
+    <input id="x2">
+    <span>→</span>
+    <input id="y2">
+  </div>
+
+  <!-- 計算式 -->
+  <div id="formula">y = ax + b</div>
+
+  <!-- 測定値 / 結果 -->
+  <label style="position:relative; left:-110px; font-size:13px;">測定値</label>
+  <label style="position:relative; left:110px; top:-18px; font-size:13px;">結果</label>
+  <div class="input-row" style="margin-top:-12px;">
+    <input id="xm">
+    <span>→</span>
+    <input id="ym">
+  </div>
+
+  <!-- テンキー -->
+  <div id="keypad">
+    <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+    <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+    <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+    <div class="key">0</div><div class="key">.</div><div class="key">←</div>
+  </div>
+
+</div>
+
 <script>
-(function(){
-  const $ = s => document.querySelector(s);
-  const el = {
-    x1: $("#x1"), y1: $("#y1"),
-    x2: $("#x2"), y2: $("#y2"),
-    xm: $("#xm"), res: $("#res"),
-    formula: $("#formula")
-  };
+const el = {
+  x1: document.querySelector("#x1"),
+  y1: document.querySelector("#y1"),
+  x2: document.querySelector("#x2"),
+  y2: document.querySelector("#y2"),
+  xm: document.querySelector("#xm"),
+  ym: document.querySelector("#ym"),
+  formula: document.querySelector("#formula")
+};
 
-  // フォーカスで自動クリア＋自動計算
-  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(inp=>{
-    inp.addEventListener("focus", ()=>{ inp.value=""; compute(); active=inp; });
-    inp.addEventListener("input", compute);
-  });
+/* ✅ 起動時デフォルト値（あなた指定通り） */
+el.x1.value = "4";
+el.y1.value = "0";
+el.x2.value = "20";
+el.y2.value = "";   // ← ここは空欄指定
 
-  // 末尾ゼロと末尾の . を落とす
-  const trim = v => String(v)
-    .replace(/\.0+$|(\.\d*?)0+$/,'$1')
-    .replace(/\.$/,'');
+function compute(){
+  const x1 = parseFloat(el.x1.value);
+  const y1 = parseFloat(el.y1.value);
+  const x2 = parseFloat(el.x2.value);
+  const y2 = parseFloat(el.y2.value);
 
-  // テンキーの入力先
-  let active = el.x1;
-  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(i=>i.addEventListener("focus",()=>active=i));
+  if(isFinite(x1) && isFinite(y1) && isFinite(x2) && isFinite(y2) && x1 !== x2){
+    const a = (y2 - y1) / (x2 - x1);
+    const b = y1 - a * x1;
+    el.formula.textContent = `y = ${a.toFixed(3).replace(/\\.0+$/, "")}x + ${b.toFixed(3).replace(/\\.0+$/, "")}`;
 
-  // テンキー
-  document.querySelectorAll(".key").forEach(k=>{
-    k.addEventListener("click", ()=>{
-      if(!active || active.readOnly) return;
-      const t = k.textContent.trim();
-      if(t === "←"){ active.value = active.value.slice(0,-1); }
-      else{
-        if(t==="." && active.value.includes(".")) return;
-        active.value += t;
-      }
-      compute();
-    });
-  });
-
-  const num = v => {
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : null;
-  };
-
-  function compute(){
-    const x1 = num(el.x1.value), x2 = num(el.x2.value);
-    const y1 = num(el.y1.value), y2 = num(el.y2.value);
-    const xm = num(el.xm.value);
-
-    if([x1,x2,y1,y2].every(v=>v!==null) && x2!==x1){
-      const a = (y2 - y1) / (x2 - x1);
-      const b = y1 - a * x1;
-      el.formula.textContent = `y = ${trim(a)}x + ${trim(b)}`;
-      el.res.value = (xm!==null) ? trim(a * xm + b) : "";
-    }else{
-      el.formula.textContent = "y = ax + b";
-      if(xm===null) el.res.value = "";
+    const xm = parseFloat(el.xm.value);
+    if(isFinite(xm)){
+      const y = a * xm + b;
+      el.ym.value = y.toFixed(3).replace(/\\.0+$/, "");
     }
+  } else {
+    el.formula.textContent = "y = ax + b";
+    el.ym.value = "";
   }
-})();
+}
+
+for(const k in el){
+  el[k].addEventListener("input", compute);
+}
+
+/* ✅ 入力欄クリックで自動クリア */
+document.querySelectorAll("input").forEach(input=>{
+  input.addEventListener("focus",()=> input.select());
+});
+
+let target = null;
+document.querySelectorAll("input").forEach(i=> i.addEventListener("focus",()=> target=i));
+
+document.querySelectorAll(".key").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    if(!target) return;
+    const v = btn.textContent;
+    if(v === "←"){ target.value = target.value.slice(0,-1); }
+    else{ target.value += v; }
+    compute();
+  });
+});
 </script>
+
 </body>
 </html>
