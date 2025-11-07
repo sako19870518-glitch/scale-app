@@ -5,25 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール変換</title>
 <style>
+  /* レイアウト定数 */
   :root{
     --labelw: 70px;   /* 左の「1点目/2点目」ラベル列の幅 */
-    --inw:    90px;   /* 入力ボックスの幅（4桁＋小数点） */
+    --inw:    90px;   /* 入力ボックス幅（4桁＋小数点想定） */
     --arroww: 24px;   /* → の列幅 */
-    --gap:     8px;   /* グリッドの列ギャップ */
-    /* 計算式/テンキーの幅＝ 左右入力 + → + ギャップ×2 */
-    --linew: calc(var(--inw) * 2 + var(--arroww) + 16px);
+    --gap:     8px;   /* 列ギャップ */
+    /* 計算式/テンキーの行の幅（左枠+→+右枠＋その間のギャップ×2） */
+    --linew: calc(var(--inw) * 2 + var(--arroww) + var(--gap) * 2);
   }
+
+  *{ box-sizing: border-box; }
 
   body{
     margin:0; padding:20px; background:#fafafa; color:#111;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
     display:flex; justify-content:center;
   }
+  /* 全体の横幅＝ラベル列＋ギャップ＋(左枠→右枠エリア) */
   .wrap{ width: calc(var(--labelw) + var(--gap) + var(--linew)); }
 
   h2{ margin:0 0 12px; text-align:center; }
 
-  /* 共通グリッド（ラベル列＋左入力＋→＋右入力） */
+  /* 4列グリッド：ラベル列 | 左枠 | → | 右枠 */
   .grid{
     display:grid;
     grid-template-columns: var(--labelw) var(--inw) var(--arroww) var(--inw);
@@ -32,7 +36,7 @@
     margin:8px 0;
   }
 
-  /* 上の見出し（変換前/変換後、測定値/結果） */
+  /* 上の見出し（変換前/変換後、測定値/結果）— 対応枠の真上に中央揃え */
   .hdr{ margin-top:10px; margin-bottom:4px; }
   .hdr .lbl-left{ grid-column: 1 / 2; }
   .hdr .lbl-lin { grid-column: 2 / 3; text-align:center; font-weight:800; }
@@ -45,25 +49,49 @@
   .row .rbx { grid-column: 4 / 5; }
 
   input.box{
-    width: var(--inw); height:38px; font-size:18px; text-align:right;
-    border:1px solid #888; border-radius:6px; background:#fff;
+    width: var(--inw);
+    height:38px;
+    font-size:18px;
+    text-align:right;
+    border:1px solid #888;
+    border-radius:6px;
+    background:#fff;
   }
 
-  /* 計算式の枠とテンキーは linew に合わせる */
+  /* 計算式とテンキーは「左ラベル列＋ギャップ」分だけ左に寄せて、幅は linew に固定 */
   #formula, .keypad{
     width: var(--linew);
-    margin: 12px auto 0;
-    background:#fff; border:1px solid #aaa; border-radius:6px;
+    margin-left: calc(var(--labelw) + var(--gap));
+    margin-right: 0;
+    background:#fff;
+    border:1px solid #aaa;
+    border-radius:6px;
   }
-  #formula{ padding:10px; text-align:center; font-size:16px; }
+  #formula{
+    padding:10px;
+    text-align:center;
+    font-size:16px;
+  }
 
   .keypad{
-    border-color:#888; padding:12px; margin-top:14px;
-    display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;
+    border-color:#888;
+    padding:12px;
+    margin-top:14px;
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:8px;
   }
   .key{
-    background:#fff; border:1px solid #666; border-radius:6px;
-    font-size:20px; padding:12px 0; cursor:pointer; user-select:none;
+    background:#fff;
+    border:1px solid #666;
+    border-radius:6px;
+    font-size:20px;
+    height:48px;               /* 数字を縦中心に */
+    display:flex;
+    align-items:center;        /* 縦 */
+    justify-content:center;    /* 横 */
+    cursor:pointer;
+    user-select:none;
   }
 
   @media (max-width:480px){
@@ -75,7 +103,7 @@
   <div class="wrap">
     <h2>スケール変換</h2>
 
-    <!-- 変換前 / 変換後（対応する枠の上に中央揃え） -->
+    <!-- 変換前 / 変換後（対応する枠の上に中央） -->
     <div class="grid hdr">
       <div class="lbl-left"></div>
       <div class="lbl-lin">変換前</div>
@@ -99,10 +127,10 @@
       <input id="y2" class="box rbx" inputmode="decimal" type="text">
     </div>
 
-    <!-- 計算式（上の2枠と左右ピッタリ揃える） -->
+    <!-- 計算式 — 上の2枠エリアと左右ピッタリ一致 -->
     <div id="formula">y = ax + b</div>
 
-    <!-- 測定値 / 結果（対応する枠の上に中央揃え） -->
+    <!-- 測定値 / 結果（対応する枠の上に中央） -->
     <div class="grid hdr">
       <div class="lbl-left"></div>
       <div class="lbl-lin">測定値</div>
@@ -118,7 +146,7 @@
       <input id="res" class="box rbx" type="text" readonly>
     </div>
 
-    <!-- テンキー（計算式と同幅） -->
+    <!-- テンキー — 計算式と同幅に揃える -->
     <div class="keypad">
       <div class="key">7</div><div class="key">8</div><div class="key">9</div>
       <div class="key">4</div><div class="key">5</div><div class="key">6</div>
@@ -137,18 +165,18 @@
     formula: $("#formula")
   };
 
-  // フォーカスで中身を消す（自動クリア）＋自動計算トリガ
+  // フォーカスで自動クリア＋自動計算
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(inp=>{
     inp.addEventListener("focus", ()=>{ inp.value=""; compute(); active=inp; });
     inp.addEventListener("input", compute);
   });
 
-  // 小数末尾の 0 と . を落とす
+  // 末尾ゼロと末尾の . を落とす
   const trim = v => String(v)
     .replace(/\.0+$|(\.\d*?)0+$/,'$1')
     .replace(/\.$/,'');
 
-  // 現在のテンキー入力先
+  // テンキーの入力先
   let active = el.x1;
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(i=>i.addEventListener("focus",()=>active=i));
 
@@ -166,10 +194,10 @@
     });
   });
 
-  function num(v){
+  const num = v => {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : null;
-  }
+  };
 
   function compute(){
     const x1 = num(el.x1.value), x2 = num(el.x2.value);
@@ -180,11 +208,7 @@
       const a = (y2 - y1) / (x2 - x1);
       const b = y1 - a * x1;
       el.formula.textContent = `y = ${trim(a)}x + ${trim(b)}`;
-      if(xm!==null){
-        el.res.value = trim(a * xm + b);
-      }else{
-        el.res.value = "";
-      }
+      el.res.value = (xm!==null) ? trim(a * xm + b) : "";
     }else{
       el.formula.textContent = "y = ax + b";
       if(xm===null) el.res.value = "";
