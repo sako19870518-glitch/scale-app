@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール変換</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 
@@ -17,49 +16,46 @@
   h1{font-size:20px;margin:0 0 12px}
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.05);padding:18px}
 
-  /* ★ ここを詰めた */
-  .grid2{display:grid;grid-template-columns:1fr 16px 1fr;gap:6px;align-items:center}
+  /* ★ 中央の → 部分を “幅ゼロの 1col” にして左右対称化 */
+  .grid2{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:8px;           /* 左右バランス良く */
+    align-items:center;
+  }
 
-  /* ★ ここも詰めた */
+  .arrow{font-size:18px;font-weight:800;color:#777;text-align:center;min-width:20px;}
+
   .col{display:flex;flex-direction:column;gap:6px}
-
-  /* ★ ラベル←→入力欄 の距離を詰めた */
-  .row{display:grid;grid-template-columns:70px auto;gap:4px;align-items:center}
+  .row{display:grid;grid-template-columns:64px auto;gap:4px;align-items:center}
   .lbl{color:var(--muted);font-size:13px}
 
-  /* 入力ボックス（4桁向け小さめ） */
   input.box{
-    height:36px;
-    width:90px;
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:0 8px;
-    font-size:16px;
+    height:36px;width:90px;
+    border:1px solid var(--line);border-radius:8px;
+    padding:0 8px;font-size:16px;text-align:right;
     background:#fff;
-    text-align:right;
   }
   input.box[readonly]{background:#fafafa;}
 
-  .arrow{display:flex;align-items:center;justify-content:center;color:#777}
-  .arrow::after{content:"→";font-size:18px}
-
-  .btns{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}
-  .btn{height:40px;border-radius:10px;border:1px solid var(--line);font-weight:800;font-size:14px;cursor:pointer;background:#fff}
+  .btn{height:40px;border-radius:10px;border:1px solid var(--line);font-weight:800;font-size:14px;cursor:pointer;background:#fff;margin-top:10px;width:100%;}
 
   .formulaWrap{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
   .formula{color:#444;font-size:12px}
   .equation{margin-top:4px;font-weight:800}
 
-  .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px}
-  .panel h2{margin:0 0 10px;font-size:14px;color:#555}
-  .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .key{height:52px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:18px;font-weight:800;cursor:pointer}
+  /* ★ テンキーの幅を少し狭める */
+  .panel{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px}
+  .panel h2{margin:0 0 8px;font-size:14px;color:#555}
+  .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .key{height:46px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:17px;font-weight:800;cursor:pointer}
   .key.wide{grid-column:span 2}
   .key.dark{background:#111;color:#fff;border-color:#111}
 
   @media (max-width:640px){
-    .row{grid-template-columns:64px auto;}
-    input.box{width:82px}
+    .row{grid-template-columns:60px auto;}
+    input.box{width:80px}
+    .key{height:42px;font-size:16px}
   }
 </style>
 </head>
@@ -68,6 +64,7 @@
   <h1>スケール変換</h1>
   <div class="card">
 
+    <!-- 左右 → の隙間が対称 -->
     <div class="grid2">
       <div class="col">
         <div class="row"><div class="lbl">1点目</div><input id="x1" class="box" type="number" inputmode="decimal" value="4"></div>
@@ -75,18 +72,16 @@
         <div class="row"><div class="lbl">測定値</div><input id="xm" class="box" type="number" inputmode="decimal" value="12"></div>
       </div>
 
-      <div class="arrow"></div>
+      <div class="arrow">→</div>
 
       <div class="col">
         <div class="row"><div class="lbl">&nbsp;</div><input id="y1" class="box" type="number" inputmode="decimal" value="0"></div>
         <div class="row"><div class="lbl">&nbsp;</div><input id="y2" class="box" type="number" inputmode="decimal" value="100"></div>
-        <div class="row"><div class="lbl">&nbsp;</div><input id="ym" class="box" type="text" readonly></div>
+        <div class="row"><div class="lbl">結果</div><input id="ym" class="box" type="text" readonly></div>
       </div>
     </div>
 
-    <div class="btns">
-      <button id="btnClear" class="btn">クリア</button>
-    </div>
+    <button id="btnClear" class="btn">クリア</button>
 
     <div class="formulaWrap">
       <div id="formulaLine" class="formula"></div>
@@ -111,7 +106,6 @@
 </div>
 
 <script>
-/* （前回の JS 全部そのまま。変えてません） */
 (() => {
   const $=s=>document.querySelector(s);
   const el={x1:$("#x1"),y1:$("#y1"),x2:$("#x2"),y2:$("#y2"),xm:$("#xm"),ym:$("#ym"),formula:$("#formulaLine"),eq:$("#equationLine"),btnClear:$("#btnClear")};
@@ -120,17 +114,8 @@
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>e.addEventListener("focus",()=>current=e));
   const num=v=>{const n=parseFloat(v);return Number.isFinite(n)?n:null;};
   const fmt=n=>Number.isFinite(n)?(Math.round(n*10000)/10000).toString():"";
-  function calc(){
-    const x1=num(el.x1.value),y1=num(el.y1.value),x2=num(el.x2.value),y2=num(el.y2.value);
-    if([x1,y1,x2,y2].some(v=>v===null)||x1===x2)return null;
-    const a=(y2-y1)/(x2-x1),b=y1-a*x1;return{a,b,x1,y1,x2,y2};
-  }
-  function update(){
-    const ab=calc(),xm=num(el.xm.value);
-    if(ab&&xm!==null)el.ym.value=fmt(ab.a*xm+ab.b);else el.ym.value="";
-    if(!ab){el.formula.textContent="式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·x+b";el.eq.textContent="";return;}
-    el.eq.textContent=`y = ${fmt(ab.a)}x + ${fmt(ab.b)}`;
-  }
+  function calc(){const x1=num(el.x1.value),y1=num(el.y1.value),x2=num(el.x2.value),y2=num(el.y2.value);if([x1,y1,x2,y2].some(v=>v===null)||x1===x2)return null;const a=(y2-y1)/(x2-x1),b=y1-a*x1;return{a,b};}
+  function update(){const ab=calc(),xm=num(el.xm.value);el.ym.value=(ab&&xm!==null)?fmt(ab.a*xm+ab.b):"";el.eq.textContent=ab?`y = ${fmt(ab.a)}x + ${fmt(ab.b)}`:""; }
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>e.addEventListener("input",update));
   el.btnClear.addEventListener("click",()=>{[el.x1,el.y1,el.x2,el.y2,el.xm,el.ym].forEach(e=>e.value="");update();el.x1.focus();});
   document.querySelectorAll(".key").forEach(k=>k.addEventListener("click",()=>{
@@ -144,7 +129,6 @@
     update();
   }));
   update();
-  if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js").catch(()=>{});
 })();
 </script>
 </body>
