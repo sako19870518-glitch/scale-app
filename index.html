@@ -110,9 +110,18 @@
 let active = null;
 
 document.querySelectorAll("input.box").forEach(i=>{
-  i.addEventListener("focus", ()=>{ active = i; i.select(); });
+  i.addEventListener("focus", ()=>{
+    active = i;
+    i.value = ""; // ← 選択したら中身を消す
+    compute();
+  });
   i.addEventListener("input", compute);
 });
+
+// 小数点以下の 0 と . を削る関数
+function trim(v){
+  return String(v).replace(/\.0+$|(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+}
 
 document.querySelectorAll(".key").forEach(k=>{
   k.addEventListener("click", ()=>{
@@ -131,9 +140,9 @@ function compute(){
   if(isFinite(x1v)&&isFinite(x2v)&&isFinite(y1v)&&isFinite(y2v)){
     let a=(y2v-y1v)/(x2v-x1v);
     let b=y1v - a*x1v;
-    formula.textContent=`y = ${a.toFixed(4)}x + ${b.toFixed(4)}`;
+    formula.textContent=`y = ${trim(a)}x + ${trim(b)}`;
     if(isFinite(xmVal)){
-      res.value=(a*xmVal+b).toFixed(2);
+      res.value = trim(a*xmVal+b);
     }
   }
 }
