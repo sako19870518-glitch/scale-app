@@ -7,171 +7,147 @@
 
 <style>
 body{
-  background:#fafafa;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
+  font-family: system-ui, sans-serif;
   margin:0; padding:20px;
-  text-align:center;
+  background:#fafafa; color:#111;
 }
-
-h1{ margin-bottom:20px; }
-
-.container{ max-width:360px; margin:0 auto; }
-
+.container{
+  max-width:360px; margin:0 auto;
+}
 label{
-  font-size:14px;
-  display:block;
+  font-size:14px; font-weight:600;
+  display:block; text-align:center;
   margin-bottom:4px;
 }
-
-.input-row{
-  display:flex; justify-content:center; align-items:center;
-  gap:10px; margin-bottom:14px;
+.row{
+  display:flex; justify-content:center; gap:6px;
+  margin-bottom:14px;
 }
-
 input{
-  width:120px;
-  height:38px;
+  width:80px; height:38px;
   font-size:18px;
   text-align:center;
   border:1px solid #ccc;
-  border-radius:6px;
+  border-radius:8px;
 }
-
 #formula{
-  width:100%;
-  margin:18px auto;
-  height:38px;
-  border:1px solid #ccc;
-  border-radius:6px;
-  font-size:16px;
-  display:flex; justify-content:center; align-items:center;
-  background:white;
+  text-align:center; font-size:18px; font-weight:700;
+  margin:16px 0;
 }
-
-#keypad{
-  margin-top:18px;
+.keypad{
   display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:8px;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-top:18px;
 }
-
 .key{
   height:48px;
-  background:white;
+  background:#fff;
+  border-radius:8px;
   border:1px solid #ccc;
-  border-radius:6px;
-  font-size:20px;
-  display:flex; justify-content:center; align-items:center;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; font-weight:700;
   cursor:pointer;
+  user-select:none;
 }
 </style>
 </head>
 
 <body>
-<h1>スケール変換</h1>
-
 <div class="container">
 
-  <!-- 1点目 -->
+  <!-- 変換前 -->
   <label>変換前</label>
-  <label style="position:relative; left:-110px; font-size:13px;">1点目</label>
-  <div class="input-row">
-    <input id="x1">
-    <span>→</span>
-    <input id="y1">
+  <div class="row">
+    <input id="x1" type="number" />
+    <input id="x2" type="number" />
   </div>
 
-  <!-- 2点目 -->
-  <label style="position:relative; left:-110px; font-size:13px;">2点目</label>
-  <div class="input-row">
-    <input id="x2">
-    <span>→</span>
-    <input id="y2">
+  <!-- 変換後 -->
+  <label>変換後</label>
+  <div class="row">
+    <input id="y1" type="number" />
+    <input id="y2" type="number" />
   </div>
 
   <!-- 計算式 -->
   <div id="formula">y = ax + b</div>
 
-  <!-- 測定値 / 結果 -->
-  <label style="position:relative; left:-110px; font-size:13px;">測定値</label>
-  <label style="position:relative; left:110px; top:-18px; font-size:13px;">結果</label>
-  <div class="input-row" style="margin-top:-12px;">
-    <input id="xm">
-    <span>→</span>
-    <input id="ym">
+  <!-- 測定値・結果 -->
+  <label>測定値</label>
+  <div class="row">
+    <input id="xm" type="number" />
+    <input id="ym" type="number" readonly />
   </div>
 
   <!-- テンキー -->
-  <div id="keypad">
-    <div class="key">7</div><div class="key">8</div><div class="key">9</div>
-    <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+  <div class="keypad">
     <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+    <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+    <div class="key">7</div><div class="key">8</div><div class="key">9</div>
     <div class="key">0</div><div class="key">.</div><div class="key">←</div>
   </div>
 
 </div>
 
 <script>
-const el = {
-  x1: document.querySelector("#x1"),
-  y1: document.querySelector("#y1"),
-  x2: document.querySelector("#x2"),
-  y2: document.querySelector("#y2"),
-  xm: document.querySelector("#xm"),
-  ym: document.querySelector("#ym"),
-  formula: document.querySelector("#formula")
-};
+const x1=document.getElementById("x1");
+const y1=document.getElementById("y1");
+const x2=document.getElementById("x2");
+const y2=document.getElementById("y2");
+const xm=document.getElementById("xm");
+const ym=document.getElementById("ym");
+const formula=document.getElementById("formula");
 
-/* ✅ 起動時デフォルト値（あなた指定通り） */
-el.x1.value = "4";
-el.y1.value = "0";
-el.x2.value = "20";
-el.y2.value = "";   // ← ここは空欄指定
+/* ✅ デフォルト値（指示通り） */
+x1.value="4";
+y1.value="0";
+x2.value="20";
+y2.value="";
+xm.value="";
+ym.value="";
 
-function compute(){
-  const x1 = parseFloat(el.x1.value);
-  const y1 = parseFloat(el.y1.value);
-  const x2 = parseFloat(el.x2.value);
-  const y2 = parseFloat(el.y2.value);
+/* ✅ 小数点以下余計な0を消す */
+function fmt(n){ return Number(n.toFixed(6)).toString(); }
 
-  if(isFinite(x1) && isFinite(y1) && isFinite(x2) && isFinite(y2) && x1 !== x2){
-    const a = (y2 - y1) / (x2 - x1);
-    const b = y1 - a * x1;
-    el.formula.textContent = `y = ${a.toFixed(3).replace(/\\.0+$/, "")}x + ${b.toFixed(3).replace(/\\.0+$/, "")}`;
-
-    const xm = parseFloat(el.xm.value);
-    if(isFinite(xm)){
-      const y = a * xm + b;
-      el.ym.value = y.toFixed(3).replace(/\\.0+$/, "");
-    }
-  } else {
-    el.formula.textContent = "y = ax + b";
-    el.ym.value = "";
+/* ✅ 計算 */
+function calc(){
+  const X1=parseFloat(x1.value), Y1=parseFloat(y1.value);
+  const X2=parseFloat(x2.value), Y2=parseFloat(y2.value);
+  if(isFinite(X1)&&isFinite(Y1)&&isFinite(X2)&&isFinite(Y2)&&X1!==X2){
+    const a=(Y2-Y1)/(X2-X1);
+    const b=Y1-a*X1;
+    formula.textContent=`y = ${fmt(a)}x + ${fmt(b)}`;
+    const XM=parseFloat(xm.value);
+    ym.value=isFinite(XM)?fmt(a*XM+b):"";
+  }else{
+    formula.textContent="y = ax + b";
+    ym.value="";
   }
 }
 
-for(const k in el){
-  el[k].addEventListener("input", compute);
-}
+/* ✅ 入力で即反映 */
+[x1,y1,x2,y2,xm].forEach(e=>e.addEventListener("input",calc));
 
-/* ✅ 入力欄クリックで自動クリア */
-document.querySelectorAll("input").forEach(input=>{
-  input.addEventListener("focus",()=> input.select());
+/* ✅ タップで全選択（消えるのではなく選択） */
+document.querySelectorAll("input").forEach(inp=>{
+  inp.addEventListener("focus",()=>inp.select());
 });
 
-let target = null;
-document.querySelectorAll("input").forEach(i=> i.addEventListener("focus",()=> target=i));
-
-document.querySelectorAll(".key").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    if(!target) return;
-    const v = btn.textContent;
-    if(v === "←"){ target.value = target.value.slice(0,-1); }
-    else{ target.value += v; }
-    compute();
+/* ✅ テンキー */
+let tgt=null;
+document.querySelectorAll("input").forEach(inp=>{
+  inp.addEventListener("focus",()=>tgt=inp);
+});
+document.querySelectorAll(".key").forEach(k=>{
+  k.addEventListener("click",()=>{
+    if(!tgt) return;
+    const v=k.textContent;
+    if(v==="←") tgt.value=tgt.value.slice(0,-1);
+    else tgt.value+=v;
+    calc();
   });
 });
 </script>
-
 </body>
 </html>
