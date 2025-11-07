@@ -4,150 +4,178 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール変換</title>
-
 <style>
-body{
-  font-family: system-ui, sans-serif;
-  margin:0; padding:20px;
-  background:#fafafa; color:#111;
-}
-.container{
-  max-width:360px; margin:0 auto;
-}
-label{
-  font-size:14px; font-weight:600;
-  display:block; text-align:center;
-  margin-bottom:4px;
-}
-.row{
-  display:flex; justify-content:center; gap:6px;
-  margin-bottom:14px;
-}
-input{
-  width:80px; height:38px;
-  font-size:18px;
-  text-align:center;
-  border:1px solid #ccc;
-  border-radius:8px;
-}
-#formula{
-  text-align:center; font-size:18px; font-weight:700;
-  margin:16px 0;
-}
-.keypad{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:6px;
-  margin-top:18px;
-}
-.key{
-  height:48px;
-  background:#fff;
-  border-radius:8px;
-  border:1px solid #ccc;
-  display:flex; align-items:center; justify-content:center;
-  font-size:20px; font-weight:700;
-  cursor:pointer;
-  user-select:none;
-}
+  :root{
+    --labelw: 70px;
+    --inw:    90px;
+    --arroww: 24px;
+    --gap:     8px;
+    --linew: calc(var(--inw) * 2 + var(--arroww) + var(--gap) * 2);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0; padding:20px; background:#fafafa; color:#111;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+    display:flex; justify-content:center;
+  }
+  .wrap{ width: calc(var(--labelw) + var(--gap) + var(--linew)); }
+
+  h2{ margin:0 0 12px; text-align:center; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: var(--labelw) var(--inw) var(--arroww) var(--inw);
+    column-gap: var(--gap);
+    align-items:center;
+    margin:8px 0;
+  }
+
+  .hdr{ margin-top:10px; margin-bottom:4px; }
+  .hdr .lbl-lin { grid-column: 2 / 3; text-align:center; font-weight:800; }
+  .hdr .lbl-rin { grid-column: 4 / 5; text-align:center; font-weight:800; }
+
+  .row .lab { grid-column: 1 / 2; text-align:right; padding-right:2px; }
+  .row .arr { grid-column: 3 / 4; text-align:center; font-weight:800; color:#666; }
+  input.box{
+    width: var(--inw);
+    height:38px;
+    font-size:18px;
+    text-align:right;
+    border:1px solid #888;
+    border-radius:6px;
+    background:#fff;
+  }
+
+  #formula, .keypad{
+    width: var(--linew);
+    margin-left: calc(var(--labelw) + var(--gap));
+    background:#fff;
+    border:1px solid #aaa;
+    border-radius:6px;
+  }
+  #formula{
+    padding:10px;
+    text-align:center;
+    font-size:16px;
+  }
+
+  .keypad{
+    border-color:#888;
+    padding:12px;
+    margin-top:14px;
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:8px;
+  }
+  .key{
+    background:#fff;
+    border:1px solid #666;
+    border-radius:6px;
+    font-size:20px;
+    height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    user-select:none;
+  }
 </style>
 </head>
-
 <body>
-<div class="container">
+  <div class="wrap">
+    <h2>スケール変換</h2>
 
-  <!-- 変換前 -->
-  <label>変換前</label>
-  <div class="row">
-    <input id="x1" type="number" />
-    <input id="x2" type="number" />
+    <div class="grid hdr">
+      <div></div>
+      <div class="lbl-lin">変換前</div>
+      <div></div>
+      <div class="lbl-rin">変換後</div>
+    </div>
+
+    <div class="grid row">
+      <div class="lab">1点目</div>
+      <input id="x1" class="box" inputmode="decimal" type="text" value="4">
+      <div class="arr">→</div>
+      <input id="y1" class="box" inputmode="decimal" type="text" value="0">
+    </div>
+
+    <div class="grid row">
+      <div class="lab">2点目</div>
+      <input id="x2" class="box" inputmode="decimal" type="text" value="20">
+      <div class="arr">→</div>
+      <input id="y2" class="box" inputmode="decimal" type="text">
+    </div>
+
+    <div id="formula">y = ax + b</div>
+
+    <div class="grid hdr">
+      <div></div>
+      <div class="lbl-lin">測定値</div>
+      <div></div>
+      <div class="lbl-rin">結果</div>
+    </div>
+
+    <div class="grid row">
+      <div class="lab"></div>
+      <input id="xm" class="box" inputmode="decimal" type="text">
+      <div class="arr">→</div>
+      <input id="res" class="box" type="text" readonly>
+    </div>
+
+    <div class="keypad">
+      <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+      <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+      <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+      <div class="key">0</div><div class="key">.</div><div class="key">←</div>
+    </div>
   </div>
-
-  <!-- 変換後 -->
-  <label>変換後</label>
-  <div class="row">
-    <input id="y1" type="number" />
-    <input id="y2" type="number" />
-  </div>
-
-  <!-- 計算式 -->
-  <div id="formula">y = ax + b</div>
-
-  <!-- 測定値・結果 -->
-  <label>測定値</label>
-  <div class="row">
-    <input id="xm" type="number" />
-    <input id="ym" type="number" readonly />
-  </div>
-
-  <!-- テンキー -->
-  <div class="keypad">
-    <div class="key">1</div><div class="key">2</div><div class="key">3</div>
-    <div class="key">4</div><div class="key">5</div><div class="key">6</div>
-    <div class="key">7</div><div class="key">8</div><div class="key">9</div>
-    <div class="key">0</div><div class="key">.</div><div class="key">←</div>
-  </div>
-
-</div>
 
 <script>
-const x1=document.getElementById("x1");
-const y1=document.getElementById("y1");
-const x2=document.getElementById("x2");
-const y2=document.getElementById("y2");
-const xm=document.getElementById("xm");
-const ym=document.getElementById("ym");
-const formula=document.getElementById("formula");
+(function(){
+  const $ = s => document.querySelector(s);
+  const el = { x1:$("#x1"), y1:$("#y1"), x2:$("#x2"), y2:$("#y2"), xm:$("#xm"), res:$("#res"), formula:$("#formula") };
 
-/* ✅ デフォルト値（指示通り） */
-x1.value="4";
-y1.value="0";
-x2.value="20";
-y2.value="";
-xm.value="";
-ym.value="";
+  const trim = v => String(v)
+    .replace(/\.0+$|(\.\d*?)0+$/,'$1')
+    .replace(/\.$/,'');
 
-/* ✅ 小数点以下余計な0を消す */
-function fmt(n){ return Number(n.toFixed(6)).toString(); }
-
-/* ✅ 計算 */
-function calc(){
-  const X1=parseFloat(x1.value), Y1=parseFloat(y1.value);
-  const X2=parseFloat(x2.value), Y2=parseFloat(y2.value);
-  if(isFinite(X1)&&isFinite(Y1)&&isFinite(X2)&&isFinite(Y2)&&X1!==X2){
-    const a=(Y2-Y1)/(X2-X1);
-    const b=Y1-a*X1;
-    formula.textContent=`y = ${fmt(a)}x + ${fmt(b)}`;
-    const XM=parseFloat(xm.value);
-    ym.value=isFinite(XM)?fmt(a*XM+b):"";
-  }else{
-    formula.textContent="y = ax + b";
-    ym.value="";
-  }
-}
-
-/* ✅ 入力で即反映 */
-[x1,y1,x2,y2,xm].forEach(e=>e.addEventListener("input",calc));
-
-/* ✅ タップで全選択（消えるのではなく選択） */
-document.querySelectorAll("input").forEach(inp=>{
-  inp.addEventListener("focus",()=>inp.select());
-});
-
-/* ✅ テンキー */
-let tgt=null;
-document.querySelectorAll("input").forEach(inp=>{
-  inp.addEventListener("focus",()=>tgt=inp);
-});
-document.querySelectorAll(".key").forEach(k=>{
-  k.addEventListener("click",()=>{
-    if(!tgt) return;
-    const v=k.textContent;
-    if(v==="←") tgt.value=tgt.value.slice(0,-1);
-    else tgt.value+=v;
-    calc();
+  let active = el.x1;
+  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(i=>{
+    i.addEventListener("focus",()=>{ active=i; });
+    i.addEventListener("input",compute);
   });
-});
+
+  document.querySelectorAll(".key").forEach(k=>{
+    k.addEventListener("click",()=>{
+      if(!active || active.readOnly) return;
+      const t=k.textContent.trim();
+      if(t==="←"){ active.value=active.value.slice(0,-1); }
+      else{
+        if(t==="." && active.value.includes(".")) return;
+        active.value+=t;
+      }
+      compute();
+    });
+  });
+
+  const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
+
+  function compute(){
+    const x1=num(el.x1.value), x2=num(el.x2.value), y1=num(el.y1.value), y2=num(el.y2.value), xm=num(el.xm.value);
+    if([x1,x2,y1,y2].every(v=>v!==null) && x2!==x1){
+      const a=(y2-y1)/(x2-x1), b=y1-a*x1;
+      el.formula.textContent=`y = ${trim(a)}x + ${trim(b)}`;
+      el.res.value = (xm!==null) ? trim(a*xm+b) : "";
+    }else{
+      el.formula.textContent="y = ax + b";
+      if(xm===null) el.res.value="";
+    }
+  }
+
+  compute();
+})();
 </script>
 </body>
 </html>
