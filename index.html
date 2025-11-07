@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>スケール変換</title>
+<meta http-equiv="Cache-Control" content="no-store" />
 <style>
   :root{ --bg:#f5f6f8; --card:#fff; --line:#e3e5ea; --ink:#111; --muted:#666; --btn:#111; }
   html,body{height:100%}
@@ -127,24 +128,32 @@
 </div>
 
 <script>
+(() => {
   const $ = s => document.querySelector(s);
-  const ids = ["x1","y1","x2","y2","xm","ym"];
-  const el = Object.fromEntries(ids.map(id=>[id,$("#"+id)]));
+  const el = {
+    x1: $("#x1"), y1: $("#y1"),
+    x2: $("#x2"), y2: $("#y2"),
+    xm: $("#xm"), ym: $("#ym"),
+    formula: $("#formulaLine"), eq: $("#equationLine"),
+    btnCalc: $("#btnCalc"), btnClear: $("#btnClear")
+  };
 
-  // フォーカス管理（テンキー入力先）
+  // フォーカス中（テンキーの入力先）
   let current = el.x1;
-  ids.forEach(id=>{
-    const e = el[id];
-    if(e) e.addEventListener("focus", ()=> current = e);
+  [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
+    e.addEventListener("focus", ()=> current=e);
   });
 
-  function num(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : null; }
+  const num = v => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  };
   const fmt = n => Number.isFinite(n) ? (Math.round(n*10000)/10000).toString() : "";
 
   function computeAB(){
     const x1=num(el.x1.value), y1=num(el.y1.value);
     const x2=num(el.x2.value), y2=num(el.y2.value);
-    if([x1,y1,x2,y2].some(v => v===null)) return null;
+    if([x1,y1,x2,y2].some(v=>v===null)) return null;
     if(x2===x1) return {err:"x2 と x1 が同じ（割り算不可）"};
     const a=(y2-y1)/(x2-x1);
     const b=y1-a*x1;
@@ -152,21 +161,20 @@
   }
 
   function updateFormula(){
-    const f=$("#formulaLine"), q=$("#equationLine");
     const ab = computeAB();
     const xm = num(el.xm.value);
 
-    if(!ab){ 
-      f.textContent = "式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b";
-      q.textContent = "";
+    if(!ab){
+      el.formula.textContent = "式：a=(y2−y1)/(x2−x1), b=y1−a·x1, 結果=a·測定値+b";
+      el.eq.textContent = "";
       return;
     }
-    if(ab.err){ f.textContent = ab.err; q.textContent=""; return; }
+    if(ab.err){ el.formula.textContent = ab.err; el.eq.textContent=""; return; }
 
-    // y=ax+b 行
-    q.textContent = `y = ${fmt(ab.a)}x + ${fmt(ab.b)}`;
+    // y = ax + b
+    el.eq.textContent = `y = ${fmt(ab.a)}x + ${fmt(ab.b)}`;
 
-    // 詳細式（数値埋め込み）
+    // 具体式
     let text = `式：a=(${ab.y2}−${ab.y1})/(${ab.x2}−${ab.x1})=${fmt(ab.a)}, `
              + `b=${ab.y1}−${fmt(ab.a)}·${ab.x1}=${fmt(ab.b)}`;
     if(xm!==null){
@@ -175,12 +183,12 @@
     }else{
       text += `, 結果=a·測定値+b`;
     }
-    f.textContent = text;
+    el.formula.textContent = text;
   }
 
   function calcOnce(){
     const ab = computeAB();
-    if(!ab || ab.err){ el.ym.value = ""; updateFormula(); return; }
+    if(!ab || ab.err){ el.ym.value=""; updateFormula(); return; }
     const xm = num(el.xm.value);
     if(xm===null){ el.ym.value=""; updateFormula(); return; }
     el.ym.value = fmt(ab.a*xm + ab.b);
@@ -190,50 +198,46 @@
   function clearAll(){
     [el.x1,el.y1,el.x2,el.y2,el.xm,el.ym].forEach(e=>e.value="");
     updateFormula();
-    (el.x1||document.body).focus();
+    el.x1.focus();
   }
 
-  // 入力のたびに式を更新（結果はボタンでもOK）
+  // 入力のたび即更新
   [el.x1,el.y1,el.x2,el.y2,el.xm].forEach(e=>{
     e.addEventListener("input", updateFormula);
     e.addEventListener("change", updateFormula);
   });
 
   // ボタン
-  $("#btnCalc").addEventListener("click", calcOnce);
-  $("#btnClear").addEventListener("click", clearAll);
+  el.btnCalc.addEventListener("click", calcOnce);
+  el.btnClear.addEventListener("click", clearAll);
 
   // テンキー
   document.querySelectorAll(".key").forEach(k=>{
     k.addEventListener("click", ()=>{
       if(!current || current.readOnly) return;
-
       const act = k.dataset.act;
       if(!act){
-        // 数字/小数点
         const t = k.textContent.trim();
         if(t==="." && current.value.includes(".")) return;
         current.value += t;
       }else{
-        if(act==="bk"){
-          current.value = current.value.slice(0,-1);
-        }else if(act==="ce"){
-          current.value = "";
-        }else if(act==="sgn"){
+        if(act==="bk") current.value = current.value.slice(0,-1);
+        if(act==="ce") current.value = "";
+        if(act==="sgn"){
           if(current.value.startsWith("-")) current.value = current.value.slice(1);
           else current.value = current.value?("-"+current.value):"-";
-        }else if(act==="ok"){
-          current.blur();
         }
+        if(act==="ok") current.blur();
       }
-      // 入力ごとに式を更新＆結果も再計算
+      // 入力ごとに更新
       updateFormula();
-      if(current===el.xm){ calcOnce(); }
+      if(current===el.xm) calcOnce();
     });
   });
 
-  // 初期表示
+  // 初期
   updateFormula();
+})();
 </script>
 </body>
 </html>
