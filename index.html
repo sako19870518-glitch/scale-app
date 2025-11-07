@@ -6,23 +6,35 @@
 <title>スケール変換</title>
 
 <style>
-  body { 
-    font-family: sans-serif; background:#fafafa; 
-    margin:0; padding:20px; text-align:center; 
+  body {
+    font-family: sans-serif;
+    background:#fafafa;
+    margin:0; padding:20px;
+    display:flex;
+    justify-content:center;
+    text-align:center;
+  }
+
+  .container {
+    width: 300px;
+  }
+
+  .section-label {
+    font-size:14px;
+    font-weight:bold;
+    margin:14px 0 6px 0;
+    text-align:left;
   }
 
   .row {
     display:flex;
-    justify-content:center;
     align-items:center;
-    gap:12px;
-    margin:10px 0;
+    justify-content:space-between;
+    margin:6px 0;
   }
 
-  .label { width:60px; text-align:right; font-size:16px; }
-
   input.box {
-    width:90px;
+    width:110px;
     height:38px;
     font-size:18px;
     text-align:right;
@@ -31,20 +43,22 @@
   }
 
   #formula {
-    width:260px;
-    margin:14px auto;
+    width:100%;
+    margin:14px 0;
     padding:10px;
     border:1px solid #aaa;
     background:white;
     border-radius:6px;
+    text-align:center;
+    font-size:16px;
   }
 
   .keypad {
-    width:260px;
-    margin:20px auto 0 auto;
+    width:100%;
     display:grid;
     grid-template-columns: repeat(3, 1fr);
     gap:8px;
+    margin-top:16px;
   }
 
   .key {
@@ -57,45 +71,42 @@
     user-select:none;
   }
 
-  #clearBtn { margin-top:16px; padding:8px 16px; font-size:16px; }
-
+  #clearBtn {
+    margin-top:14px;
+    padding:8px 16px;
+    font-size:16px;
+  }
 </style>
 </head>
 
 <body>
+<div class="container">
 
 <h2>スケール変換</h2>
 
-<div class="row" style="font-weight:bold;">
-  <div class="label"></div><div>変換前</div><div></div><div>変換後</div>
-</div>
+<div class="section-label">変換前　→　変換後</div>
 
 <div class="row">
-  <div class="label">1点目</div>
   <input class="box" id="x1">
   <span>→</span>
   <input class="box" id="y1">
 </div>
 
 <div class="row">
-  <div class="label">2点目</div>
   <input class="box" id="x2">
   <span>→</span>
   <input class="box" id="y2">
 </div>
 
-<div class="row" style="font-weight:bold; margin-top:12px;">
-  <div class="label"></div><div>測定値</div><div></div><div>結果</div>
-</div>
+<div id="formula">y = ax + b</div>
+
+<div class="section-label">測定値　→　結果</div>
 
 <div class="row">
-  <div class="label"></div>
   <input class="box" id="xm">
   <span>→</span>
   <input class="box" id="res" readonly>
 </div>
-
-<div id="formula">y = ax + b</div>
 
 <button id="clearBtn">クリア</button>
 
@@ -106,19 +117,20 @@
   <div class="key">0</div><div class="key">.</div><div class="key">←</div>
 </div>
 
+</div>
+
 <script>
 let active = null;
 
 document.querySelectorAll("input.box").forEach(i=>{
   i.addEventListener("focus", ()=>{
     active = i;
-    i.value = ""; // ← 選択したら中身を消す
+    i.value = "";
     compute();
   });
   i.addEventListener("input", compute);
 });
 
-// 小数点以下の 0 と . を削る関数
 function trim(v){
   return String(v).replace(/\.0+$|(\.\d*?)0+$/,'$1').replace(/\.$/,'');
 }
